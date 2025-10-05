@@ -1,0 +1,21 @@
+server.name: cerebrops-kibana
+server.host: "0.0.0.0"
+server.port: 5601
+
+elasticsearch.hosts: ["http://elasticsearch:9200"]
+elasticsearch.requestTimeout: 30000
+
+# Monitoring
+monitoring.enabled: false
+
+# Security
+xpack.security.enabled: false
+
+# Default index pattern
+kibana.defaultAppId: "discover"
+
+# Logging
+logging.level: info
+
+# UI settings
+i18n.locale: "en"

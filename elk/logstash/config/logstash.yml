@@ -1,0 +1,13 @@
+http.host: "0.0.0.0"
+path.config: /usr/share/logstash/pipeline
+
+# Performance settings
+pipeline.workers: 2
+pipeline.batch.size: 125
+pipeline.batch.delay: 50
+
+# Monitoring
+xpack.monitoring.enabled: false
+
+# Logging
+log.level: info

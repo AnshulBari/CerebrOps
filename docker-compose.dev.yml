@@ -1,0 +1,92 @@
+# CerebrOps Development Environment
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: cerebrops-dev
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./:/app
+      - ./logs:/app/logs
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+    command: python app.py
+    depends_on:
+      - elasticsearch
+      - kibana
+    networks:
+      - cerebrops-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
+    container_name: cerebrops-elasticsearch-dev
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=cerebrops-dev
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_dev_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - cerebrops-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.9.0
+    container_name: cerebrops-kibana-dev
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - cerebrops-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: cerebrops-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    networks:
+      - cerebrops-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: cerebrops-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - cerebrops-network
+
+volumes:
+  elasticsearch_dev_data:
+  grafana_data:
+
+networks:
+  cerebrops-network:
+    driver: bridge

@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cerebrops-anomaly-detection
+spec:
+  schedule: "*/5 * * * *"  # Run every 5 minutes
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: anomaly-detector
+            image: cerebrops:latest
+            command:
+            - python
+            - anomaly_detector.py
+            env:
+            - name: APP_URL
+              value: "http://cerebrops-service.default.svc.cluster.local"
+            - name: SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: cerebrops-secrets
+                  key: slack-webhook-url
+                  optional: true
+            resources:
+              requests:
+                memory: "128Mi"
+                cpu: "100m"
+              limits:
+                memory: "256Mi"
+                cpu: "200m"
+          restartPolicy: OnFailure
+      backoffLimit: 3
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cerebrops-log-cleanup
+spec:
+  schedule: "0 2 * * *"  # Run daily at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: log-cleanup
+            image: busybox:1.35
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Cleaning up old logs..."
+              find /logs -type f -name "*.log" -mtime +7 -delete
+              echo "Log cleanup completed"
+            volumeMounts:
+            - name: logs
+              mountPath: /logs
+          volumes:
+          - name: logs
+            persistentVolumeClaim:
+              claimName: cerebrops-logs-pvc
+          restartPolicy: OnFailure

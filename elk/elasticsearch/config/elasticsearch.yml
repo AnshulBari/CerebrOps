@@ -1,0 +1,17 @@
+cluster.name: "cerebrops-cluster"
+network.host: 0.0.0.0
+discovery.type: single-node
+
+# Security settings
+xpack.security.enabled: false
+xpack.security.enrollment.enabled: false
+
+# Performance settings
+bootstrap.memory_lock: true
+
+# Index settings
+action.destructive_requires_name: true
+indices.query.bool.max_clause_count: 10000
+
+# Logging
+logger.level: INFO
