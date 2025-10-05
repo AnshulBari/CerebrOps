@@ -5,18 +5,18 @@ exclude =
     venv,
     build,
     dist,
+    .venv,
     __pycache__,
     .git,
     .pytest_cache,
     logs,
     elk
 
-# Ignore some common warnings
 ignore = 
-    E203,  # whitespace before ':'
-    E501,  # line too long (handled by max-line-length)
-    W503,  # line break before binary operator
-    F401,  # imported but unused (in __init__.py files)
+    E203,
+    E501,
+    W503,
+    F401
 
 per-file-ignores =
     __init__.py:F401

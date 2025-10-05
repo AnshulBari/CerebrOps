@@ -52,7 +52,7 @@ HTML_TEMPLATE = """
             <h2>AI-Powered CI/CD Monitoring System</h2>
             <p>Status: <span class="{{ status_class }}">{{ status }}</span></p>
         </div>
-        
+
         <div class="metrics">
             <div class="metric-card">
                 <h3>System Metrics</h3>
@@ -60,14 +60,14 @@ HTML_TEMPLATE = """
                 <p><strong>Memory Usage:</strong> {{ memory_usage }}%</p>
                 <p><strong>Disk Usage:</strong> {{ disk_usage }}%</p>
             </div>
-            
+
             <div class="metric-card">
                 <h3>Application Health</h3>
                 <p><strong>Uptime:</strong> {{ uptime }} seconds</p>
                 <p><strong>Request Count:</strong> {{ request_count }}</p>
                 <p><strong>Error Rate:</strong> {{ error_rate }}%</p>
             </div>
-            
+
             <div class="metric-card">
                 <h3>Pipeline Status</h3>
                 <p><strong>Last Build:</strong> {{ last_build }}</p>
@@ -75,7 +75,7 @@ HTML_TEMPLATE = """
                 <p><strong>Tests Passed:</strong> {{ tests_passed }}/{{ total_tests }}</p>
             </div>
         </div>
-        
+
         <div class="logs">
             <h3>Recent Logs</h3>
             {% for log in recent_logs %}
@@ -87,14 +87,15 @@ HTML_TEMPLATE = """
 </html>
 """
 
+
 @app.route('/')
 def dashboard():
     """Main dashboard showing system status and metrics"""
     logger.info("Dashboard accessed")
-    
+
     # Simulate some metrics
     current_time = datetime.now()
-    
+
     # Generate some sample data
     sample_data = {
         'status': 'healthy' if random.random() > 0.1 else 'unhealthy',
@@ -116,7 +117,7 @@ def dashboard():
             f"{current_time.strftime('%H:%M:%S')} WARNING: High memory usage detected"
         ]
     }
-    
+
     # Store metrics for anomaly detection
     metrics_data.append({
         'timestamp': current_time.isoformat(),
@@ -125,31 +126,33 @@ def dashboard():
         'disk_usage': sample_data['disk_usage'],
         'error_rate': sample_data['error_rate']
     })
-    
+
     # Keep only last 100 entries
     if len(metrics_data) > 100:
         metrics_data.pop(0)
-    
+
     return render_template_string(HTML_TEMPLATE, **sample_data)
+
 
 @app.route('/health')
 def health_check():
     """Health check endpoint for Kubernetes"""
     logger.info("Health check requested")
-    
+
     health_status["checks"] = [
         {"name": "database", "status": "ok"},
         {"name": "cache", "status": "ok"},
         {"name": "external_api", "status": "ok"}
     ]
-    
+
     return jsonify(health_status)
+
 
 @app.route('/metrics')
 def get_metrics():
     """Get metrics in JSON format for monitoring"""
     logger.info("Metrics requested")
-    
+
     current_metrics = {
         'timestamp': datetime.now().isoformat(),
         'cpu_usage': random.randint(20, 80),
@@ -159,18 +162,19 @@ def get_metrics():
         'error_rate': random.randint(0, 5),
         'response_time': random.uniform(0.1, 2.0)
     }
-    
+
     return jsonify(current_metrics)
+
 
 @app.route('/logs')
 def get_logs():
     """Get recent logs for anomaly detection"""
     logger.info("Logs requested")
-    
+
     # Generate sample log entries
     sample_logs = []
     current_time = datetime.now()
-    
+
     log_levels = ['INFO', 'WARNING', 'ERROR', 'DEBUG']
     log_messages = [
         "User authentication successful",
@@ -181,7 +185,7 @@ def get_logs():
         "Network request timeout",
         "File system operation completed"
     ]
-    
+
     for i in range(20):
         log_entry = {
             'timestamp': current_time.isoformat(),
@@ -190,14 +194,15 @@ def get_logs():
             'module': 'cerebrops'
         }
         sample_logs.append(log_entry)
-    
+
     return jsonify({'logs': sample_logs})
+
 
 @app.route('/simulate-error')
 def simulate_error():
     """Simulate an error for testing anomaly detection"""
     logger.error("Simulated error occurred")
-    
+
     # Generate some anomalous metrics
     anomalous_metrics = {
         'timestamp': datetime.now().isoformat(),
@@ -206,16 +211,17 @@ def simulate_error():
         'disk_usage': random.randint(95, 100),
         'error_rate': random.randint(20, 50)
     }
-    
+
     metrics_data.append(anomalous_metrics)
-    
+
     return jsonify({'status': 'error simulated', 'metrics': anomalous_metrics}), 500
+
 
 @app.route('/api/pipeline-status')
 def pipeline_status():
     """Get CI/CD pipeline status"""
     logger.info("Pipeline status requested")
-    
+
     pipeline_data = {
         'pipeline_id': f"pipeline-{random.randint(1000, 9999)}",
         'status': random.choice(['running', 'success', 'failed', 'pending']),
@@ -224,12 +230,13 @@ def pipeline_status():
         'commit_hash': f"abc{random.randint(1000, 9999)}",
         'branch': 'main'
     }
-    
+
     return jsonify(pipeline_data)
+
 
 if __name__ == '__main__':
     # Create logs directory if it doesn't exist
     os.makedirs('/app/logs', exist_ok=True)
-    
+
     logger.info("Starting CerebrOps application")
     app.run(host='0.0.0.0', port=5000, debug=False)
