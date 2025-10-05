@@ -5,7 +5,17 @@ Test suite for CerebrOps anomaly detection module
 import unittest
 from unittest.mock import Mock, patch
 import numpy as np
+import pytest
+import requests
 from anomaly_detector import AnomalyDetector
+
+# Check if pandas is available
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
+    pd = None
 
 
 class TestAnomalyDetector(unittest.TestCase):
@@ -34,10 +44,11 @@ class TestAnomalyDetector(unittest.TestCase):
     def test_prepare_features(self):
         """Test feature preparation"""
         sample_data = self.detector._generate_sample_data()
-        features_df = self.detector.prepare_features(sample_data)
+        features = self.detector.prepare_features(sample_data)
 
-        self.assertFalse(features_df.empty)
-        self.assertGreater(len(features_df.columns), 0)
+        self.assertIsInstance(features, np.ndarray)
+        self.assertGreater(features.shape[0], 0)
+        self.assertGreater(features.shape[1], 0)
 
     def test_model_training(self):
         """Test model training"""
@@ -83,22 +94,22 @@ class TestAnomalyDetector(unittest.TestCase):
 
     def test_recommendations_generation(self):
         """Test recommendations generation"""
-        import pandas as pd
-
-        # Create test data with high values
-        test_df = pd.DataFrame({
-            'cpu_usage': [90, 95, 85],
-            'memory_usage': [85, 90, 80],
-            'error_rate': [15, 20, 12]
-        })
+        # Create test data 
+        test_data = [
+            {'cpu_usage': 90, 'memory_usage': 85, 'error_rate': 15, 'disk_usage': 70, 'request_count': 100, 'response_time': 3.0},
+            {'cpu_usage': 95, 'memory_usage': 90, 'error_rate': 20, 'disk_usage': 75, 'request_count': 120, 'response_time': 4.0},
+            {'cpu_usage': 85, 'memory_usage': 80, 'error_rate': 12, 'disk_usage': 65, 'request_count': 90, 'response_time': 2.5}
+        ]
+        
+        features = self.detector.prepare_features(test_data)
         predictions = np.array([-1, -1, -1])  # All anomalies
 
-        recommendations = self.detector._get_recommendations(test_df, predictions)
+        recommendations = self.detector._get_recommendations(features, predictions, test_data)
 
         self.assertIsInstance(recommendations, list)
         self.assertGreater(len(recommendations), 0)
 
-    @patch('requests.get')
+    @patch('anomaly_detector.requests.get')
     def test_fetch_metrics_data_success(self, mock_get):
         """Test successful metrics fetching"""
         mock_response = Mock()
@@ -115,10 +126,10 @@ class TestAnomalyDetector(unittest.TestCase):
         self.assertIsInstance(data, list)
         self.assertGreater(len(data), 0)
 
-    @patch('requests.get')
+    @patch('anomaly_detector.requests.get')
     def test_fetch_metrics_data_failure(self, mock_get):
         """Test metrics fetching failure"""
-        mock_get.side_effect = Exception("Connection error")
+        mock_get.side_effect = requests.exceptions.RequestException("Connection error")
 
         data = self.detector.fetch_metrics_data()
 

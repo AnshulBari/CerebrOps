@@ -5,7 +5,12 @@ Uses machine learning to detect anomalies in system metrics and logs
 
 import json
 import numpy as np
-import pandas as pd
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
+    pd = None
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 from datetime import datetime, timedelta
@@ -94,26 +99,61 @@ class AnomalyDetector:
 
         return data
 
-    def prepare_features(self, data: List[Dict]) -> pd.DataFrame:
+    def prepare_features(self, data: List[Dict]) -> np.ndarray:
         """Prepare features for machine learning model"""
-        df = pd.DataFrame(data)
+        if PANDAS_AVAILABLE:
+            # Use pandas for enhanced feature engineering
+            df = pd.DataFrame(data)
+            
+            # Ensure all required columns exist
+            for col in self.feature_columns:
+                if col not in df.columns:
+                    df[col] = 0
 
-        # Ensure all required columns exist
-        for col in self.feature_columns:
-            if col not in df.columns:
-                df[col] = 0
+            # Fill missing values
+            df[self.feature_columns] = df[self.feature_columns].fillna(0)
 
-        # Fill missing values
-        df[self.feature_columns] = df[self.feature_columns].fillna(0)
-
-        # Add time-based features
-        if 'timestamp' in df.columns:
-            df['timestamp'] = pd.to_datetime(df['timestamp'])
-            df['hour'] = df['timestamp'].dt.hour
-            df['day_of_week'] = df['timestamp'].dt.dayofweek
-            self.feature_columns.extend(['hour', 'day_of_week'])
-
-        return df[self.feature_columns]
+            # Add time-based features
+            if 'timestamp' in df.columns:
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                df['hour'] = df['timestamp'].dt.hour
+                df['day_of_week'] = df['timestamp'].dt.dayofweek
+                feature_cols = self.feature_columns + ['hour', 'day_of_week']
+            else:
+                feature_cols = self.feature_columns
+                
+            return df[feature_cols].values
+        
+        else:
+            # Numpy-based fallback implementation
+            feature_matrix = []
+            
+            for item in data:
+                row = []
+                # Extract basic features
+                for col in self.feature_columns:
+                    value = item.get(col, 0)
+                    # Handle missing/invalid values
+                    if value is None or (isinstance(value, str) and not value.replace('.', '').isdigit()):
+                        value = 0
+                    row.append(float(value))
+                
+                # Add simple time-based features if timestamp exists
+                if 'timestamp' in item:
+                    try:
+                        from datetime import datetime
+                        if isinstance(item['timestamp'], str):
+                            dt = datetime.fromisoformat(item['timestamp'].replace('Z', '+00:00'))
+                        else:
+                            dt = item['timestamp']
+                        row.append(dt.hour)  # hour of day
+                        row.append(dt.weekday())  # day of week
+                    except:
+                        row.extend([12, 1])  # default values
+                
+                feature_matrix.append(row)
+            
+            return np.array(feature_matrix)
 
     def train_model(self, training_data: List[Dict] = None) -> bool:
         """
@@ -133,14 +173,14 @@ class AnomalyDetector:
             logger.info(f"Training model with {len(training_data)} data points")
 
             # Prepare features
-            features_df = self.prepare_features(training_data)
+            features = self.prepare_features(training_data)
 
-            if features_df.empty:
+            if features.size == 0:
                 logger.error("No valid features found in training data")
                 return False
 
             # Scale features
-            features_scaled = self.scaler.fit_transform(features_df)
+            features_scaled = self.scaler.fit_transform(features)
 
             # Train model
             self.model.fit(features_scaled)
@@ -174,13 +214,13 @@ class AnomalyDetector:
                 return {'status': 'no_data', 'message': 'No data to analyze'}
 
             # Prepare features
-            features_df = self.prepare_features(data)
+            features = self.prepare_features(data)
 
-            if features_df.empty:
+            if features.size == 0:
                 return {'status': 'error', 'message': 'No valid features found'}
 
             # Scale features
-            features_scaled = self.scaler.transform(features_df)
+            features_scaled = self.scaler.transform(features)
 
             # Predict anomalies
             predictions = self.model.predict(features_scaled)
@@ -203,7 +243,7 @@ class AnomalyDetector:
                 'anomaly_percentage': round(anomaly_percentage, 2),
                 'anomalous_data': anomalous_data,
                 'severity': self._calculate_severity(anomaly_percentage, anomaly_scores),
-                'recommendations': self._get_recommendations(features_df, predictions)
+                'recommendations': self._get_recommendations(features, predictions, data)
             }
 
             logger.info(f"Anomaly detection completed: {result['status']}")
@@ -226,24 +266,53 @@ class AnomalyDetector:
         else:
             return 'low'
 
-    def _get_recommendations(self, features_df: pd.DataFrame, predictions: np.ndarray) -> List[str]:
+    def _get_recommendations(self, features: np.ndarray, predictions: np.ndarray, data: List[Dict]) -> List[str]:
         """Get recommendations based on detected anomalies"""
         recommendations = []
 
         if np.any(predictions == -1):
-            anomalous_data = features_df[predictions == -1]
+            # Get indices of anomalous data points
+            anomaly_indices = np.where(predictions == -1)[0]
+            
+            if PANDAS_AVAILABLE:
+                # Use pandas for more sophisticated analysis
+                df = pd.DataFrame(data)
+                anomalous_data = df.iloc[anomaly_indices]
+                
+                if 'cpu_usage' in df.columns and anomalous_data['cpu_usage'].mean() > 80:
+                    recommendations.append("High CPU usage detected. Consider scaling up or optimizing processes.")
 
-            if 'cpu_usage' in features_df.columns and anomalous_data['cpu_usage'].mean() > 80:
-                recommendations.append("High CPU usage detected. Consider scaling up or optimizing processes.")
+                if 'memory_usage' in df.columns and anomalous_data['memory_usage'].mean() > 80:
+                    recommendations.append("High memory usage detected. Check for memory leaks or increase memory allocation.")
 
-            if 'memory_usage' in features_df.columns and anomalous_data['memory_usage'].mean() > 80:
-                recommendations.append("High memory usage detected. Check for memory leaks or increase memory allocation.")
+                if 'error_rate' in df.columns and anomalous_data['error_rate'].mean() > 10:
+                    recommendations.append("High error rate detected. Review application logs and fix critical issues.")
 
-            if 'error_rate' in features_df.columns and anomalous_data['error_rate'].mean() > 10:
-                recommendations.append("High error rate detected. Review application logs and fix critical issues.")
-
-            if 'response_time' in features_df.columns and anomalous_data['response_time'].mean() > 2.0:
-                recommendations.append("Slow response times detected. Optimize database queries and API calls.")
+                if 'response_time' in df.columns and anomalous_data['response_time'].mean() > 2.0:
+                    recommendations.append("Slow response times detected. Optimize database queries and API calls.")
+            else:
+                # Numpy-based analysis for basic recommendations
+                anomalous_data = [data[i] for i in anomaly_indices]
+                
+                # Check CPU usage
+                cpu_values = [item.get('cpu_usage', 0) for item in anomalous_data]
+                if cpu_values and np.mean(cpu_values) > 80:
+                    recommendations.append("High CPU usage detected. Consider scaling up or optimizing processes.")
+                
+                # Check memory usage  
+                memory_values = [item.get('memory_usage', 0) for item in anomalous_data]
+                if memory_values and np.mean(memory_values) > 80:
+                    recommendations.append("High memory usage detected. Check for memory leaks or increase memory allocation.")
+                
+                # Check error rate
+                error_values = [item.get('error_rate', 0) for item in anomalous_data]
+                if error_values and np.mean(error_values) > 10:
+                    recommendations.append("High error rate detected. Review application logs and fix critical issues.")
+                
+                # Check response time
+                response_values = [item.get('response_time', 0) for item in anomalous_data]
+                if response_values and np.mean(response_values) > 2.0:
+                    recommendations.append("Slow response times detected. Optimize database queries and API calls.")
 
         if not recommendations:
             recommendations.append("System appears to be operating normally.")
