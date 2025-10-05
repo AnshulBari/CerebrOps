@@ -6,3 +6,9 @@ pandas==2.0.3
 python-dotenv==1.0.0
 elasticsearch==8.9.0
 prometheus-client==0.17.1
+
+# Testing dependencies
+pytest==7.4.2
+pytest-cov==4.1.0
+pytest-mock==3.11.1
+flake8==6.0.0
