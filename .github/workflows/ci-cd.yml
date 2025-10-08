@@ -102,7 +102,7 @@ jobs:
     - name: Run security scan
       uses: aquasecurity/trivy-action@master
       with:
-        image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
         format: 'table'
         exit-code: '1'  # Fail build on critical/high vulnerabilities
         severity: 'CRITICAL,HIGH'
