@@ -10,13 +10,13 @@ spec:
         spec:
           containers:
           - name: anomaly-detector
-            image: cerebrops:latest
+            image: ghcr.io/anshulbari/cerebrops:latest
             command:
             - python
             - anomaly_detector.py
             env:
             - name: APP_URL
-              value: "http://cerebrops-service.default.svc.cluster.local"
+              value: "http://cerebrops-service.cerebrops.svc.cluster.local"
             - name: SLACK_WEBHOOK_URL
               valueFrom:
                 secretKeyRef:

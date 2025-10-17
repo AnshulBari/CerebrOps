@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: cerebrops-web
-        image: cerebrops:latest
+        image: ghcr.io/anshulbari/cerebrops:latest
         ports:
         - containerPort: 5000
           name: http
