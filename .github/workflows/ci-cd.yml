@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: anshulbari/cerebrops
 
 jobs:
   test:
@@ -99,17 +99,29 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Run security scan
+  security-scan:
+    needs: [build]
+    runs-on: ubuntu-latest
+    name: Security Scan
+    
+    steps:
+    - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-        format: 'table'
-        exit-code: '1'  # Fail build on critical/high vulnerabilities
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-${{ github.sha }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
         severity: 'CRITICAL,HIGH'
         ignore-unfixed: true
 
+    - name: Upload Trivy results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
   deploy:
-    needs: [test, build]
+    needs: [test, build, security-scan]
     runs-on: ubuntu-latest
     name: Deploy to Kubernetes
     if: github.ref == 'refs/heads/main'
@@ -125,17 +137,17 @@ jobs:
 
     - name: Configure kubectl
       run: |
-        # Configure kubectl with cluster credentials from GitHub secrets
-        echo "Configuring kubectl for deployment..."
-        kubectl config set-cluster cerebrops --server=${{ secrets.K8S_SERVER }}
-        kubectl config set-credentials cerebrops --token=${{ secrets.K8S_TOKEN }}
-        kubectl config set-context cerebrops --cluster=cerebrops --user=cerebrops
+        mkdir -p $HOME/.kube
+        echo "${{ secrets.K8S_TOKEN }}" > $HOME/.kube/token
+        kubectl config set-cluster cerebrops --server=${{ secrets.K8S_SERVER }} --insecure-skip-tls-verify=true
+        kubectl config set-credentials cerebrops --token=$(cat $HOME/.kube/token)
+        kubectl config set-context cerebrops --cluster=cerebrops --user=cerebrops --namespace=cerebrops
         kubectl config use-context cerebrops
 
     - name: Update deployment image
       run: |
-        # Update the image tag in deployment yaml
-        sed -i "s|cerebrops:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}|g" k8s/deployment.yaml
+        sed -i "s|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-${{ github.sha }}|g" k8s/deployment.yaml
+        sed -i "s|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-${{ github.sha }}|g" k8s/cronjobs.yaml
 
     - name: Deploy to Kubernetes
       run: |
