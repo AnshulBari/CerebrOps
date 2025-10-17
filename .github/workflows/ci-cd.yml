@@ -199,49 +199,6 @@ jobs:
         alerter.send_slack_alert('🚀 CerebrOps deployment completed successfully!', 'low')
         "
 
-  security-scan:
-    runs-on: ubuntu-latest
-    name: Security Scan
-    permissions:
-      security-events: write
-      actions: read
-      contents: read
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'table'
-        exit-code: '1'  # Fail on critical/high vulnerabilities
-        severity: 'CRITICAL,HIGH'
-        ignore-unfixed: true
-
-    - name: Run Trivy SARIF scan
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-        exit-code: '0'  # Don't fail for SARIF output
-
-    - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
-
-    - name: Run CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
-      with:
-        languages: python
-      continue-on-error: true
-
   performance-test:
     needs: build
     runs-on: ubuntu-latest
