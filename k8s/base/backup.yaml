@@ -1,0 +1,89 @@
+# Daily backup of the SQLite metrics store + persisted models.
+# Restore procedure: docs/runbooks/restore.md
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cerebrops-backup
+  namespace: cerebrops
+spec:
+  schedule: "0 1 * * *"  # Daily at 01:00 UTC
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+          - name: backup
+            image: ghcr.io/anshulbari/cerebrops:latest
+            command:
+            - python
+            - scripts/backup.py
+            - --db
+            - /app/data/cerebrops.db
+            - --models-dir
+            - /app/models
+            - --dest
+            - /backup
+            - --keep
+            - "14"
+            env:
+            - name: CEREBROPS_DB_PATH
+              value: "/app/data/cerebrops.db"
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                memory: "64Mi"
+                cpu: "50m"
+              limits:
+                memory: "256Mi"
+                cpu: "250m"
+            volumeMounts:
+            - name: data
+              mountPath: /app/data
+            - name: models
+              mountPath: /app/models
+              subPath: models
+            - name: backup
+              mountPath: /backup
+          volumes:
+          - name: data
+            persistentVolumeClaim:
+              claimName: cerebrops-data-pvc
+          - name: models
+            persistentVolumeClaim:
+              claimName: cerebrops-data-pvc
+          - name: backup
+            persistentVolumeClaim:
+              claimName: cerebrops-backup-pvc
+          restartPolicy: OnFailure
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cerebrops-backup-pvc
+  namespace: cerebrops
+  labels:
+    app: cerebrops
+spec:
+  # ReadWriteMany so the backup CronJob can write while web replicas hold the
+  # data volume. For offsite durability, sync this volume to S3/EFS (see
+  # docs/runbooks/restore.md).
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard  # Adjust based on your cluster

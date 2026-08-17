@@ -1,53 +1,36 @@
-filebeat.inputs:
-- type: log
-  enabled: true
-  paths:
-    - /app/logs/*.log
-  fields:
-    application: cerebrops
-    environment: ${ENVIRONMENT:development}
-  fields_under_root: true
-  multiline.pattern: '^\d{4}-\d{2}-\d{2}'
-  multiline.negate: true
-  multiline.match: after
+# CerebrOps Filebeat configuration (standalone ELK stack)
+#
+# Collects Docker container logs (including the CerebrOps app container) and
+# ships them to Logstash, which parses/enriches and forwards to Elasticsearch.
+# The app writes structured JSON to stdout, so each docker log line is a JSON
+# record (or a plain text line that Logstash groks as a fallback).
 
+filebeat.inputs:
 - type: container
   enabled: true
   paths:
-    - '/var/lib/docker/containers/*/*.log'
+    - /var/lib/docker/containers/*/*.log
   processors:
   - add_docker_metadata:
       host: "unix:///var/run/docker.sock"
+      match_source: true
 
-filebeat.config.modules:
-  path: ${path.config}/modules.d/*.yml
-  reload.enabled: false
+# Ship all containers; filter by container name in Kibana (e.g. container.name:
+# cerebrops-app) or add a `condition` here to restrict to the app only.
+processors:
+- add_host_metadata:
+    when.not.contains.tags: forwarded
+- add_cloud_metadata: ~
 
 setup.template.settings:
   index.number_of_shards: 1
   index.number_of_replicas: 0
 
-setup.template.name: "cerebrops-filebeat"
-setup.template.pattern: "cerebrops-filebeat-*"
+setup.template.name: "cerebrops-logs"
+setup.template.pattern: "cerebrops-logs-*"
 
 output.logstash:
   hosts: ["logstash:5044"]
 
-# Alternative direct output to Elasticsearch (uncomment if not using Logstash)
-# output.elasticsearch:
-#   hosts: ["elasticsearch:9200"]
-#   index: "cerebrops-filebeat-%{+yyyy.MM.dd}"
-
-processors:
-- add_host_metadata:
-    when.not.contains.tags: forwarded
-- add_cloud_metadata: ~
-- add_docker_metadata: ~
-
 logging.level: info
-logging.to_files: true
-logging.files:
-  path: /var/log/filebeat
-  name: filebeat
-  keepfiles: 7
-  permissions: 0644
+logging.to_files: false

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CerebrOps — AI-powered deployment intelligence. Watch every commit travel from build to production, and let anomaly detection find the deploy that broke it.">
+  <title>CerebrOps — Ship code without the ceremony</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+</head>
+<body>
+  <div class="landing-grid" aria-hidden="true"></div>
+
+  <!-- ============ NAV ============ -->
+  <header class="landing-nav">
+    <a class="brand" href="#top" aria-label="CerebrOps home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M8 12h2.2l1.2-3 2.2 6 1.4-3H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="brand-name">CerebrOps</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#product">Product</a>
+      <a href="#detection">Detection</a>
+      <a href="#observability">Observability</a>
+      <a href="/experience">Experience</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-ghost btn-sm" href="/dashboard">Open dashboard</a>
+      <a class="btn btn-primary btn-sm" href="/dashboard">
+        Get started
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <main id="top">
+    <section class="hero">
+      <!-- cinematic full-bleed background video -->
+      <div class="hero-bg" aria-hidden="true">
+        <video class="hero-video" autoplay muted loop playsinline preload="metadata" tabindex="-1">
+          <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260423_084718_72a17915-4964-4059-afcd-22d59399b72e.mp4" type="video/mp4">
+        </video>
+        <div class="hero-scrim"></div>
+      </div>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow reveal">AI-powered deployment intelligence</p>
+          <h1 class="reveal split">
+            Ship code without
+            <span class="grad serif-it">the ceremony.</span>
+          </h1>
+          <p class="hero-sub reveal">
+            Every commit travels commit&nbsp;→ build&nbsp;→ test&nbsp;→ security&nbsp;→ deploy&nbsp;→&nbsp;production.
+            CerebrOps watches the whole journey, learns your normal, and tells you
+            <em>which deploy</em> broke things when something slips.
+          </p>
+          <div class="hero-cta reveal">
+            <a class="btn btn-primary btn-lg" href="/dashboard">Open the dashboard</a>
+            <a class="btn btn-lg" href="#product">See how it works</a>
+          </div>
+          <div class="hero-meta reveal">
+            <span class="chip"><span class="dot dot-success"></span> pipeline webhook live</span>
+            <span class="chip">Prometheus &amp; Grafana native</span>
+            <span class="chip">runs in your cluster</span>
+          </div>
+        </div>
+
+        <!-- signature: live pipeline -->
+        <div class="hero-visual reveal" id="hero-visual">
+          <div class="vis-head">
+            <span class="vis-title">
+              <span class="dot dot-run" id="vis-live-dot"></span>
+              cerebrops-core · main
+            </span>
+            <span class="vis-meta mono caret" id="vis-meta">run-1842 · 42s</span>
+          </div>
+          <div class="pipeline" id="hero-pipeline" role="img" aria-label="Animated pipeline: commit, build, test, security, deploy, production">
+            <div class="pipeline-track" aria-hidden="true">
+              <div class="rail"></div>
+              <div class="pulse" id="pulse"></div>
+              <div class="stage" data-stage="commit">
+                <span class="stage-icon">git</span>
+                <span class="stage-name">Commit</span>
+                <span class="stage-time mono" data-time>—</span>
+              </div>
+              <div class="stage" data-stage="build">
+                <span class="stage-icon">b</span>
+                <span class="stage-name">Build</span>
+                <span class="stage-time mono" data-time>—</span>
+              </div>
+              <div class="stage" data-stage="test">
+                <span class="stage-icon">t</span>
+                <span class="stage-name">Test</span>
+                <span class="stage-time mono" data-time>—</span>
+              </div>
+              <div class="stage" data-stage="security">
+                <span class="stage-icon">s</span>
+                <span class="stage-name">Security</span>
+                <span class="stage-time mono" data-time>—</span>
+              </div>
+              <div class="stage" data-stage="deploy">
+                <span class="stage-icon">d</span>
+                <span class="stage-name">Deploy</span>
+                <span class="stage-time mono" data-time>—</span>
+              </div>
+              <div class="stage" data-stage="prod">
+                <span class="stage-icon">★</span>
+                <span class="stage-name">Production</span>
+                <span class="stage-time mono" data-time>—</span>
+              </div>
+            </div>
+          </div>
+          <div class="vis-foot">
+            <span class="mono" id="vis-commit">7d2f9a1 · fix: backpressure on webhook ingress</span>
+            <span class="vis-check" id="vis-check">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+              passed
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LOGO STRIP ============ -->
+    <section class="logo-strip" aria-label="Integrations">
+      <p class="strip-label reveal">Plugs into the pipeline you already run</p>
+      <div class="strip-row reveal reveal-d1">
+        <span class="strip-item mono">GitHub Actions</span>
+        <span class="strip-item mono">GitLab CI</span>
+        <span class="strip-item mono">Jenkins</span>
+        <span class="strip-item mono">Prometheus</span>
+        <span class="strip-item mono">Grafana</span>
+        <span class="strip-item mono">Kubernetes</span>
+        <span class="strip-item mono">Slack</span>
+      </div>
+    </section>
+
+    <!-- ============ PRODUCT / SCROLL STORY ============ -->
+    <section class="section" id="product">
+      <div class="section-head reveal">
+        <p class="eyebrow">From commit to production</p>
+        <h2 class="split">One journey. <span class="serif-it">Zero guesswork.</span></h2>
+        <p class="section-sub">A single surface for everything that happens to your code after it leaves your laptop.</p>
+      </div>
+      <div class="story" id="story">
+        <div class="story-visual reveal reveal-d1">
+          <div class="story-pipeline" aria-hidden="true">
+            <div class="story-stage" data-stage="commit">
+              <span class="story-icon">git</span>
+              <div><span class="story-name">Commit pushed</span><span class="story-sub mono">7d2f9a1 · main</span></div>
+              <span class="story-check">✓</span>
+            </div>
+            <div class="story-conn"></div>
+            <div class="story-stage" data-stage="build">
+              <span class="story-icon">b</span>
+              <div><span class="story-name">Build</span><span class="story-sub mono">42s · cached</span></div>
+              <span class="story-check">✓</span>
+            </div>
+            <div class="story-conn"></div>
+            <div class="story-stage" data-stage="test">
+              <span class="story-icon">t</span>
+              <div><span class="story-name">Tests</span><span class="story-sub mono">312 passed</span></div>
+              <span class="story-check">✓</span>
+            </div>
+            <div class="story-conn"></div>
+            <div class="story-stage" data-stage="security">
+              <span class="story-icon">s</span>
+              <div><span class="story-name">Security</span><span class="story-sub mono">trivy · 0 critical</span></div>
+              <span class="story-check">✓</span>
+            </div>
+            <div class="story-conn"></div>
+            <div class="story-stage" data-stage="deploy">
+              <span class="story-icon">d</span>
+              <div><span class="story-name">Deploy</span><span class="story-sub mono">rolling · 2/2 ready</span></div>
+              <span class="story-check">✓</span>
+            </div>
+            <div class="story-conn"></div>
+            <div class="story-stage" data-stage="prod">
+              <span class="story-icon">★</span>
+              <div><span class="story-name">Production</span><span class="story-sub mono">live · watching</span></div>
+              <span class="story-check">✓</span>
+            </div>
+          </div>
+        </div>
+        <div class="story-copy">
+          <div class="story-block" data-story="commit">
+            <p class="story-idx mono">01</p>
+            <h3>Webhooks, not adapters</h3>
+            <p>Your CI posts one JSON event per stage. CerebrOps stores it, timestamps it, and turns it into a living record of every run.</p>
+          </div>
+          <div class="story-block" data-story="build">
+            <p class="story-idx mono">02</p>
+            <h3>Builds you can interrogate</h3>
+            <p>Durations, branches, commits, authors, stages. Filter, search, and drill into any run without leaving the dashboard.</p>
+          </div>
+          <div class="story-block" data-story="test">
+            <p class="story-idx mono">03</p>
+            <h3>Tests as a signal, not a gate</h3>
+            <p>Pass rates feed your health model. A flaky suite that used to be background noise becomes a detectable drift.</p>
+          </div>
+          <div class="story-block" data-story="deploy">
+            <p class="story-idx mono">04</p>
+            <h3>Deploys that explain themselves</h3>
+            <p>When an anomaly fires, CerebrOps correlates it against recent deployments and names the likely culprit — with the commit.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DETECTION ============ -->
+    <section class="section alt" id="detection">
+      <div class="section-head left reveal">
+        <p class="eyebrow">AI anomaly detection</p>
+        <h2 class="split">It knows what normal looks like.<br>It tells you when <span class="serif-it">normal changes.</span></h2>
+        <p class="section-sub">Forecast-residual detection learns your per-metric weekly profile and flags real deviations — then traces them back to the deploy.</p>
+      </div>
+      <div class="detect-grid">
+        <div class="detect-card reveal">
+          <div class="detect-top">
+            <span class="detect-badge badge badge-run"><span class="dot dot-run"></span> anomaly · forecast-residual</span>
+            <span class="detect-time mono">2 min ago</span>
+          </div>
+          <p class="detect-title">error_rate spiked 14.2× above forecast</p>
+          <div class="chart-demo" aria-hidden="true">
+            <svg viewBox="0 0 480 120" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="spikeFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--fail)" stop-opacity="0.28"/>
+                  <stop offset="100%" stop-color="var(--fail)" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <line x1="0" y1="60" x2="480" y2="60" stroke="var(--border-faint)"/>
+              <path d="M0 58 L40 62 L80 56 L120 60 L160 57 L200 63 L240 59 L280 61 L320 58 L360 12 L400 14 L440 52 L480 58" fill="none" stroke="var(--ink-muted)" stroke-width="1.5"/>
+              <path d="M0 58 L40 62 L80 56 L120 60 L160 57 L200 63 L240 59 L280 61 L320 58 L360 12 L400 14 L440 52 L480 58 L480 120 L0 120 Z" fill="url(#spikeFill)"/>
+              <line x1="360" y1="0" x2="360" y2="120" stroke="var(--fail)" stroke-dasharray="3 3" stroke-width="1"/>
+              <circle cx="360" cy="12" r="3.5" fill="var(--fail)"/>
+              <circle cx="320" cy="58" r="2.5" fill="var(--accent)"/>
+            </svg>
+          </div>
+          <div class="detect-root">
+            <span class="mono">↳ likely cause</span>
+            <p class="mono">run-1841 · gateway (main@deadbeef) 1.1m before</p>
+          </div>
+        </div>
+        <div class="detect-list reveal reveal-d2">
+          <div class="detect-item">
+            <span class="detect-icon">↯</span>
+            <div class="grow">
+              <p class="detect-item-title">Seasonal-naive forecasting</p>
+              <p class="detect-item-sub">Hour-of-week profiles per metric, robust MAD thresholds. No black box.</p>
+            </div>
+          </div>
+          <div class="detect-item">
+            <span class="detect-icon">◎</span>
+            <div class="grow">
+              <p class="detect-item-title">Deploy-correlated root cause</p>
+              <p class="detect-item-sub">Every alert carries the deploy that most likely caused it — branch and commit included.</p>
+            </div>
+          </div>
+          <div class="detect-item">
+            <span class="detect-icon">◇</span>
+            <div class="grow">
+              <p class="detect-item-title">Drift-based retraining</p>
+              <p class="detect-item-sub">Models retrain when the data drifts, not on a fixed 24-hour timer.</p>
+            </div>
+          </div>
+          <div class="detect-item">
+            <span class="detect-icon">▣</span>
+            <div class="grow">
+              <p class="detect-item-title">Alert to Slack, runbook attached</p>
+              <p class="detect-item-sub">Every page has a runbook. Every runbook has a next step.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ OBSERVABILITY ============ -->
+    <section class="section" id="observability">
+      <div class="section-head reveal">
+        <p class="eyebrow">Observability</p>
+        <h2 class="split">Metrics your SRE can <span class="serif-it">actually use.</span></h2>
+        <p class="section-sub">Prometheus-native metrics, error budgets, and burn alerts — plus the SQLite-backed store that keeps working when everything else hiccups.</p>
+      </div>
+      <div class="obs-grid">
+        <div class="obs-col reveal">
+          <div class="obs-stat">
+            <p class="obs-stat-value num" data-count="99.9">99.9<small>%</small></p>
+            <p class="obs-stat-label">30-day availability SLO</p>
+          </div>
+          <div class="obs-stat">
+            <p class="obs-stat-value num" data-count="14.4">14.4<small>×</small></p>
+            <p class="obs-stat-label">fast-burn page threshold</p>
+          </div>
+          <div class="obs-stat">
+            <p class="obs-stat-value num" data-count="3">3<small>tier</small></p>
+            <p class="obs-stat-label">escalation runbooks</p>
+          </div>
+        </div>
+        <div class="obs-tile reveal reveal-d1">
+          <div class="obs-tile-head">
+            <span class="mono">prometheus-rules.yml</span>
+            <span class="badge badge-success">error budget 12.6% left</span>
+          </div>
+          <pre class="obs-code"><code><span class="tok-k">- alert:</span> CerebrOpsFastBurn
+  <span class="tok-k">expr:</span> <span class="tok-v">sum_over_time(</span>
+    <span class="tok-v">error_budget_used:ratio[1h]</span>) &gt; 14.4
+  <span class="tok-k">labels:</span>
+    <span class="tok-k">severity:</span> <span class="tok-v">page</span>
+  <span class="tok-k">annotations:</span>
+    <span class="tok-k">runbook:</span> <span class="tok-v">/runbooks/slo-burn</span></code></pre>
+        </div>
+        <div class="obs-tile reveal reveal-d2">
+          <div class="obs-tile-head">
+            <span class="mono">/metrics-prom</span>
+            <span class="badge badge-accent">scraped every 15s</span>
+          </div>
+          <pre class="obs-code"><code><span class="tok-k"># HELP cerebrops_http_requests_total</span>
+<span class="tok-v">cerebrops_http_requests_total</span> 4812
+<span class="tok-v">cerebrops_http_request_duration_seconds</span>{<span class="tok-k">quantile=</span><span class="tok-s">"0.95"</span>} <span class="tok-v">0.18</span>
+<span class="tok-v">cerebrops_anomalies_detected_total</span>{<span class="tok-k">method=</span><span class="tok-s">"forecast-residual"</span>} <span class="tok-v">7</span></code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ INTEGRATIONS ============ -->
+    <section class="section alt" id="integrations">
+      <div class="section-head reveal">
+        <p class="eyebrow">Integrations</p>
+        <h2 class="split">One webhook. <span class="serif-it">Everything connected.</span></h2>
+        <p class="section-sub">CerebrOps runs where your pipeline runs — in your cluster, behind your firewall, owned by you.</p>
+      </div>
+      <div class="int-grid">
+        <div class="int-card reveal">
+          <p class="int-idx mono">CI / CD</p>
+          <ul>
+            <li>GitHub Actions &amp; GitLab CI webhooks</li>
+            <li>Stage-level event ingestion</li>
+            <li>Commit, branch, author attribution</li>
+          </ul>
+        </div>
+        <div class="int-card reveal reveal-d1">
+          <p class="int-idx mono">Telemetry</p>
+          <ul>
+            <li>Prometheus text-format endpoint</li>
+            <li>Grafana datasources &amp; dashboards</li>
+            <li>SLO recording &amp; burn alerts</li>
+          </ul>
+        </div>
+        <div class="int-card reveal reveal-d2">
+          <p class="int-idx mono">Delivery</p>
+          <ul>
+            <li>Slack alerts with runbook links</li>
+            <li>ArgoCD / GitOps ready</li>
+            <li>Deploy to your own cluster or cloud</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CTA ============ -->
+    <section class="cta">
+      <h2 class="reveal split">Your next deploy deserves<br><span class="serif-it">a witness.</span></h2>
+      <p class="cta-sub reveal">Open the dashboard and see the journey from commit to production — live.</p>
+      <div class="reveal">
+        <a class="btn btn-primary btn-lg" href="/dashboard">Open the dashboard</a>
+      </div>
+      <p class="cta-foot mono">cerebrops · commit → build → test → security → deploy → production</p>
+    </section>
+  </main>
+
+  <footer class="landing-footer">
+    <div class="footer-inner">
+      <a class="brand" href="#top">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.6"/><path d="M8 12h2.2l1.2-3 2.2 6 1.4-3H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="brand-name">CerebrOps</span>
+      </a>
+      <div class="footer-links">
+        <a href="#product">Product</a>
+        <a href="#detection">Detection</a>
+        <a href="#observability">Observability</a>
+        <a href="/experience">Experience</a>
+        <a href="/dashboard">Dashboard</a>
+      </div>
+      <p class="footer-note mono">AI-powered deployment intelligence · runs in your cluster</p>
+    </div>
+    <p class="footer-dev mono">built by <a href="https://www.anshulbari.me/" target="_blank" rel="noopener noreferrer">anshul bari</a></p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/landing.js') }}"></script>
+</body>
+</html>
