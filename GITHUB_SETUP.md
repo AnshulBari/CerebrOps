@@ -55,6 +55,71 @@ kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'
 # Save this URL - you'll need it for GitHub Secrets
 ```
 
+## Step 2b: OIDC Workload Identity (Recommended)
+
+> The pipeline deploys with **short-lived OIDC credentials** — no long-lived
+> `K8S_TOKEN`. The legacy service-account-token flow below (Step 2) is
+> deprecated and should only be used for clusters without a cloud provider
+> OIDC integration.
+
+### AWS EKS (example)
+
+1. **Create the OIDC provider for your cluster** (if not already present):
+
+   ```bash
+   eksctl utils associate-iam-oidc-provider --cluster YOUR_CLUSTER --approve
+   ```
+
+2. **Create an IAM role** trusting GitHub's OIDC issuer for this repository:
+
+   ```bash
+   aws iam create-role --role-name cerebrops-github-actions --assume-role-policy-document '{
+     "Version": "2012-10-17",
+     "Statement": [{
+       "Effect": "Allow",
+       "Principal": {"Federated": "arn:aws:iam::ACCOUNT:oidc-provider/token.actions.githubusercontent.com"},
+       "Action": "sts:AssumeRoleWithWebIdentity",
+       "Condition": {
+         "StringEquals": {"token.actions.githubusercontent.com:aud": "sts.amazonaws.com"},
+         "StringLike": {"token.actions.githubusercontent.com:sub": "repo:USERNAME/CerebrOps:ref:refs/heads/main"}
+       }
+     }]
+   }'
+   ```
+
+   Replace `ACCOUNT`, `USERNAME`, and `YOUR_CLUSTER` with your values.
+
+3. **Give the role cluster access** — map it in `aws-auth` to the existing
+   `cerebrops-deployer` service account (or cluster-admin for simplicity):
+
+   ```bash
+   eksctl create iamidentitymapping \
+     --cluster YOUR_CLUSTER \
+     --arn arn:aws:iam::ACCOUNT:role/cerebrops-github-actions \
+     --username cerebrops-deployer \
+     --group cerebrops-deployer-role
+   ```
+
+4. **Add three GitHub secrets** (Settings → Secrets and variables → Actions):
+
+   | Secret Name | Description | Example Value |
+   |------------|-------------|---------------|
+   | `AWS_ROLE_ARN` | The IAM role ARN created above | `arn:aws:iam::123456789012:role/cerebrops-github-actions` |
+   | `EKS_CLUSTER_NAME` | EKS cluster name | `my-cluster` |
+   | `AWS_REGION` | Cluster region | `us-east-1` |
+
+   Plus the optional `APP_URL`, `SLACK_WEBHOOK_URL`, and `CEREBROPS_API_KEY`
+   (used by the webhook pipeline-event reporting step).
+
+5. The deploy job in `.github/workflows/ci-cd.yml` uses
+   `aws-actions/configure-aws-credentials@v4` with `role-to-assume` and
+   `aws eks update-kubeconfig` — TLS is verified, no
+   `--insecure-skip-tls-verify` anywhere.
+
+For GCP: use Workload Identity Federation; for Azure: use
+OpenID Connect with a federated credential on a service principal. The same
+`id-token: write` permission in the workflow is all GitHub needs on its side.
+
 ## Step 3: Set Up Slack Webhook (Optional)
 
 1. Go to https://api.slack.com/apps
@@ -151,7 +216,7 @@ deploy:
 
 The pipeline will automatically update the image tag, but verify the registry:
 
-Edit `k8s/deployment.yaml`:
+Edit `k8s/base/deployment.yaml`:
 
 ```yaml
 containers:
@@ -164,7 +229,7 @@ containers:
 
 If you want to use a different namespace than `cerebrops`:
 
-Edit `k8s/deployment.yaml`, `k8s/secrets.yaml`, `k8s/cronjobs.yaml`:
+Edit `k8s/base/deployment.yaml`, `k8s/base/secrets.yaml`, `k8s/base/cronjobs.yaml`:
 
 ```yaml
 metadata:
@@ -191,7 +256,7 @@ echo -n "https://hooks.slack.com/services/YOUR/WEBHOOK/URL" | base64
 # Example output: aHR0cHM6Ly9ob29rcy5zbGFjay5jb20vc2VydmljZXMvWU9VUi9XRUJIT09LL1VSTA==
 ```
 
-Update `k8s/secrets.yaml`:
+Update `k8s/base/secrets.yaml`:
 
 ```yaml
 apiVersion: v1
@@ -286,7 +351,7 @@ Or set up ingress:
 
 ```bash
 # Apply ingress (if you have an ingress controller)
-kubectl apply -f k8s/deployment.yaml -n cerebrops
+kubectl apply -f k8s/base/deployment.yaml -n cerebrops
 
 # Add to /etc/hosts (Linux/macOS) or C:\Windows\System32\drivers\etc\hosts
 echo "127.0.0.1 cerebrops.local" | sudo tee -a /etc/hosts

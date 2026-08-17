@@ -66,7 +66,7 @@ cp .env.example .env
 
 After setup, verify everything is working:
 
-1. **CerebrOps Dashboard:** http://localhost:5000
+1. **CerebrOps Dashboard:** http://localhost:5000/dashboard
 2. **Kibana:** http://localhost:5601  
 3. **Elasticsearch:** http://localhost:9200
 

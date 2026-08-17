@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Production overlay. Manifests live in k8s/base; dev/staging are
+# k8s/overlays/{dev,staging}. CI deploys prod with `kubectl apply -k k8s/`
+# after rewriting the base image to a digest; ArgoCD can drive the same
+# overlay (deploy/argocd.yaml).
+namespace: cerebrops
+resources:
+- base

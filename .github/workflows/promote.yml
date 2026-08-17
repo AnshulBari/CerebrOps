@@ -1,0 +1,111 @@
+name: Promote Image
+
+# GitOps image promotion. Pins the dev/staging kustomize overlay to a
+# specific GHCR digest and opens a PR. ArgoCD syncs the overlay once merged,
+# so every environment change is a reviewed, auditable commit.
+#
+#   - Leave "image digest" empty to promote the latest main build.
+#   - Requires: `contents: write` (PR creation) and `packages: read` for GHCR.
+#   - Protect `main` so the PR needs review before prod-adjacent environments
+#     change.
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment (dev or staging)"
+        required: true
+        type: choice
+        options: ["dev", "staging"]
+      image_digest:
+        description: "Full image ref with digest (empty = latest main build)"
+        required: false
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: anshulbari/cerebrops
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      packages: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Resolve image digest
+      id: digest
+      env:
+        INPUT_DIGEST: ${{ inputs.image_digest }}
+      run: |
+        set -euo pipefail
+        if [ -n "$INPUT_DIGEST" ]; then
+          # Accept either a bare sha256 or a full ghcr.io/...@sha256:... ref.
+          case "$INPUT_DIGEST" in
+            sha256:*) DIGEST="$INPUT_DIGEST" ;;
+            *@sha256:*) DIGEST="${INPUT_DIGEST##*@}" ;;
+            *) echo "::error::image_digest must be a sha256:... or ghcr.io/...@sha256:... reference"; exit 1 ;;
+          esac
+        else
+          # Latest build from the main branch tag pushed by ci-cd.yml.
+          DIGEST=$(docker buildx imagetools inspect \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main" \
+            --format '{{json .Manifest.Digest}}')
+        fi
+        echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+        echo "Promoting ${{ inputs.environment }} to $DIGEST"
+
+    - name: Pin overlay image to digest
+      run: |
+        python - <<'EOF'
+        import re, os
+        env = os.environ['ENV']
+        digest = os.environ['DIGEST']
+        path = f'k8s/overlays/{env}/kustomization.yaml'
+        text = open(path, encoding='utf-8').read()
+        new_text = re.sub(
+            r'^  (newTag: .*|digest: .*)$',
+            f'  digest: {digest}',
+            text, flags=re.M,
+        )
+        if new_text == text:
+            print(f'::warning::No images entry replaced in {path}; overlay may not have changed')
+        open(path, 'w', encoding='utf-8').write(new_text)
+        EOF
+      env:
+        ENV: ${{ inputs.environment }}
+        DIGEST: ${{ steps.digest.outputs.digest }}
+
+    - name: Validate overlay
+      run: |
+        kubectl kustomize "k8s/overlays/${{ inputs.environment }}" > /dev/null
+        echo "kustomize build OK for ${{ inputs.environment }}"
+
+    - name: Open promotion PR
+      uses: peter-evans/create-pull-request@v6
+      with:
+        branch: "promote/${{ inputs.environment }}/${{ github.sha }}"
+        delete-branch: true
+        commit-message: "chore(promote): pin ${{ inputs.environment }} to ${{ steps.digest.outputs.digest }}"
+        title: "🚀 Promote image to ${{ inputs.environment }} (${{ steps.digest.outputs.digest }})"
+        body: |
+          Promotion PR triggered from [the promote workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+
+          - **Environment:** ${{ inputs.environment }}
+          - **Image digest:** `${{ steps.digest.outputs.digest }}`
+
+          Merge to let ArgoCD sync this digest to the `${{ inputs.environment }}` overlay.
+        labels:
+        - promote
