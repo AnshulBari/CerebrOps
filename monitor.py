@@ -10,29 +10,28 @@ import os
 import sys
 import json
 import argparse
-from datetime import datetime, timedelta
-from typing import Dict, Any
+from datetime import datetime
+from typing import Dict, Any, Optional
 
 from anomaly_detector import AnomalyDetector
 from alerts import SlackAlerter
+from logging_config import configure_logging
+from metrics_store import MetricsStore
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s %(levelname)s %(name)s %(message)s',
-    handlers=[
-        logging.FileHandler('/app/logs/monitoring.log'),
-        logging.StreamHandler()
-    ]
-)
+# Configure logging - resolve paths dynamically
+log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
+os.makedirs(log_dir, exist_ok=True)
 
-logger = logging.getLogger('cerebrops_monitor')
+configure_logging(level=logging.INFO, log_dir=log_dir, log_file='monitoring.log')
+
+logger = logging.getLogger('cerebrops.monitor')
 
 
 class CerebrOpsMonitor:
     def __init__(self, app_url: str = "http://localhost:5000",
-                 slack_webhook: str = None,
-                 check_interval: int = 300):
+                 slack_webhook: Optional[str] = None,
+                 check_interval: int = 300,
+                 store: Optional[MetricsStore] = None):
         """
         Initialize CerebrOps monitoring system
 
@@ -40,30 +39,57 @@ class CerebrOpsMonitor:
             app_url: URL of the Flask application
             slack_webhook: Slack webhook URL for alerts
             check_interval: Monitoring interval in seconds
+            store: MetricsStore for history; created from env if None
         """
         self.app_url = app_url
         self.check_interval = check_interval
+        self.store = store or MetricsStore()
 
-        self.anomaly_detector = AnomalyDetector(app_url=app_url)
+        self.anomaly_detector = AnomalyDetector(app_url=app_url, store=self.store)
         self.slack_alerter = SlackAlerter(slack_webhook)
 
         self.is_running = False
         self.last_training_time = None
-        self.training_interval = timedelta(hours=24)  # Retrain daily
 
         logger.info("CerebrOps Monitor initialized")
 
     def initialize(self) -> bool:
-        """Initialize the monitoring system"""
+        """Initialize the monitoring system (tolerant of missing training data)."""
         try:
             logger.info("Initializing anomaly detection model...")
 
-            # Train the model with historical data
-            if not self.anomaly_detector.train_model():
-                logger.error("Failed to initialize anomaly detection model")
-                return False
+            # Prefer the persisted model so a restart does not force a retrain.
+            if self.anomaly_detector.load_model():
+                card = self.anomaly_detector.model_card or {}
+                trained_at = card.get('trained_at')
+                if trained_at:
+                    try:
+                        parsed = datetime.fromisoformat(trained_at)
+                        # Cards store UTC-aware ISO; normalize to naive so the
+                        # naive `datetime.now()` arithmetic in
+                        # should_retrain_model() never mixes tz-aware/naive.
+                        self.last_training_time = (
+                            parsed.replace(tzinfo=None) if parsed.tzinfo else parsed
+                        )
+                    except ValueError:
+                        self.last_training_time = None
+                logger.info(
+                    "Loaded persisted anomaly model "
+                    f"(version {self.anomaly_detector.current_version})"
+                )
+            elif self.anomaly_detector.train_model():
+                self.last_training_time = datetime.now()
+                logger.info("Anomaly detection model trained and persisted successfully")
+            else:
+                logger.warning(
+                    "Anomaly model not trained yet (insufficient real history in the store). "
+                    "Detection will report 'insufficient_data' until enough metrics are collected."
+                )
 
-            self.last_training_time = datetime.now()
+            # Phase 5: fit the forecast-residual detector from real history.
+            # It activates only once enough history exists (>= 7 days).
+            self.anomaly_detector.fit_forecast()
+
             logger.info("Monitoring system initialized successfully")
             return True
 
@@ -72,28 +98,47 @@ class CerebrOpsMonitor:
             return False
 
     def should_retrain_model(self) -> bool:
-        """Check if model should be retrained"""
+        """
+        Decide whether the model should be retrained.
+
+        Retrains when: no model yet, max retrain interval elapsed (safety net),
+        or the live metric distribution drifted from the training baseline
+        (PSI above threshold). A minimum interval prevents thrashing.
+        """
+        detector = self.anomaly_detector
+
         if not self.last_training_time:
             return True
 
         time_since_training = datetime.now() - self.last_training_time
-        return time_since_training > self.training_interval
+        if time_since_training < detector.min_retrain_interval:
+            return False
+        if time_since_training > detector.max_retrain_interval:
+            logger.info("Max retrain interval reached; retraining.")
+            return True
+
+        # Drift check against the training baseline (PSI).
+        recent = detector.fetch_metrics_data(limit=500)
+        drift = detector.compute_drift(recent) if recent else {'needs_retrain': False}
+        if drift.get('needs_retrain'):
+            logger.info(
+                f"Drift detected (max PSI {drift.get('max_psi', 0):.3f} "
+                f"> threshold {drift.get('threshold', detector.drift_threshold)}); retraining."
+            )
+            return True
+        return False
 
     def retrain_model(self) -> bool:
-        """Retrain the anomaly detection model"""
+        """Retrain the anomaly detection model on real history and persist it."""
         try:
             logger.info("Retraining anomaly detection model...")
 
-            # Fetch recent data for retraining
-            recent_metrics = []
-            for _ in range(100):  # Get more data for retraining
-                metrics = self.anomaly_detector.fetch_metrics_data()
-                recent_metrics.extend(metrics)
-                time.sleep(1)  # Small delay between requests
-
-            if self.anomaly_detector.train_model(recent_metrics):
+            if self.anomaly_detector.train_model():
                 self.last_training_time = datetime.now()
-                logger.info("Model retrained successfully")
+                logger.info(
+                    "Model retrained and persisted "
+                    f"(version {self.anomaly_detector.current_version})"
+                )
                 return True
             else:
                 logger.error("Model retraining failed")
@@ -149,19 +194,54 @@ class CerebrOpsMonitor:
 
                 if self.slack_alerter.send_health_alert('unhealthy', error_msg):
                     cycle_results['alerts_sent'].append('health_alert')
+                    self._record_alert('critical', 'health',
+                                       f"Application unhealthy: {error_msg}")
 
-            # 2. Fetch current metrics
+            # 2. Fetch current metrics window from the store
             logger.info("Fetching application metrics...")
             current_metrics = self.anomaly_detector.fetch_metrics_data()
 
             if not current_metrics:
-                logger.warning("No metrics data available")
+                logger.warning("No metrics data available in the store yet")
+                self.store.record_anomaly_run(status='no_data', results=cycle_results)
                 return cycle_results
 
             # 3. Run anomaly detection
             logger.info("Running anomaly detection...")
             anomaly_results = self.anomaly_detector.detect_anomalies(current_metrics)
+
+            # Phase 5: attach deploy-correlated root-cause analysis when an
+            # anomaly is found (uses real pipeline webhook events + metric
+            # shifts from the store), then an optional LLM summary.
+            if anomaly_results.get('status') == 'anomaly':
+                try:
+                    from root_cause import analyze_root_cause
+                    anomaly_results['root_cause'] = analyze_root_cause(self.store)
+                except Exception as e:
+                    logger.warning(f"Root-cause analysis failed: {e}")
+                try:
+                    from llm_summary import generate_llm_summary
+                    summary = generate_llm_summary(
+                        anomaly_results, anomaly_results.get('root_cause')
+                    )
+                    if summary:
+                        anomaly_results['llm_summary'] = summary
+                except Exception as e:
+                    logger.warning(f"LLM summary failed: {e}")
+
             cycle_results['anomaly_detection'] = anomaly_results
+
+            # Persist the anomaly run for the dashboard and later analysis
+            try:
+                self.store.record_anomaly_run(
+                    status=anomaly_results.get('status', 'unknown'),
+                    anomaly_count=anomaly_results.get('anomaly_count'),
+                    total_data_points=anomaly_results.get('total_data_points'),
+                    severity=anomaly_results.get('severity'),
+                    results=anomaly_results,
+                )
+            except Exception as e:
+                logger.error(f"Failed to record anomaly run: {e}")
 
             # 4. Send alerts if anomalies detected
             if anomaly_results.get('status') == 'anomaly':
@@ -169,6 +249,13 @@ class CerebrOpsMonitor:
 
                 if self.slack_alerter.send_anomaly_alert(anomaly_results):
                     cycle_results['alerts_sent'].append('anomaly_alert')
+                    self._record_alert(
+                        anomaly_results.get('severity', 'medium'),
+                        'anomaly',
+                        f"Detected {anomaly_results.get('anomaly_count')} anomalies "
+                        f"({anomaly_results.get('anomaly_percentage')}% of points)",
+                        anomaly_results,
+                    )
 
             elif anomaly_results.get('status') == 'error':
                 logger.error(f"Anomaly detection error: {anomaly_results}")
@@ -178,6 +265,14 @@ class CerebrOpsMonitor:
                     'high'
                 ):
                     cycle_results['alerts_sent'].append('error_alert')
+                    self._record_alert('high', 'anomaly_error',
+                                       anomaly_results.get('message', 'Unknown error'),
+                                       anomaly_results)
+
+            elif anomaly_results.get('status') == 'insufficient_data':
+                logger.info(
+                    f"Anomaly detection skipped: {anomaly_results.get('message', 'insufficient data')}"
+                )
 
             else:
                 logger.info("No anomalies detected - system operating normally")
@@ -261,10 +356,21 @@ class CerebrOpsMonitor:
 
         return self.run_monitoring_cycle()
 
+    def _record_alert(self, severity: str, alert_type: str, message: str,
+                      payload: Optional[Dict[str, Any]] = None) -> None:
+        """Persist an alert to the metrics store."""
+        try:
+            self.store.record_alert(severity=severity, alert_type=alert_type,
+                                    message=message, payload=payload)
+        except Exception as e:
+            logger.error(f"Failed to record alert: {e}")
+
     def _save_cycle_results(self, results: Dict[str, Any]) -> None:
         """Save monitoring cycle results to file"""
         try:
-            results_file = '/app/logs/monitoring_results.jsonl'
+            results_file = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), 'logs', 'monitoring_results.jsonl'
+            )
 
             # Ensure directory exists
             os.makedirs(os.path.dirname(results_file), exist_ok=True)

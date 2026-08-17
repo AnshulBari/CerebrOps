@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: cerebrops
+# Base manifests shared by all environments (prod = k8s/, dev/staging =
+# overlays/). Overlays tune namespace, replicas, ingress host, and image.
+resources:
+- namespace.yaml
+- deployment.yaml
+- cronjobs.yaml
+- backup.yaml
+- persistent-volume.yaml
+- secrets.yaml
+- rbac.yaml
+- hpa.yaml
+- pdb.yaml
+- network-policy.yaml
+# Operator-dependent resources (enable after installing the operator):
+# - cert-manager.yaml   requires cert-manager (ClusterIssuer CRD)
+# - externalsecrets.yaml requires the External Secrets Operator
+# The Deployment tolerates their absence: the ingress TLS just won't issue,
+# and the slack-webhook secret is marked optional.
+#
+# NOTE: no `images:` block here on purpose. CI rewrites the deployment image
+# to a digest before `kubectl apply -k`, and ArgoCD drives tag updates via
+# the `kustomize.images` field in deploy/argocd.yaml. A newTag here would
+# clobber the digest-pinned deploy.

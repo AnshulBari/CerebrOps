@@ -5,6 +5,8 @@
 
 CerebrOps is an intelligent CI/CD monitoring system that combines traditional monitoring with AI-powered anomaly detection to provide proactive alerts and insights for your development pipeline.
 
+> 🧭 **New here?** Read **[PROJECT_EXPLAINED.md](PROJECT_EXPLAINED.md)** — a beginner-friendly tour of the problem, our approach, the architecture, every module, the workflow, and the tech stack.
+
 ## 🎯 Features
 
 - **🔍 Real-time Monitoring**: Continuous monitoring of application metrics and system health
@@ -112,7 +114,7 @@ docker run -d -p 5000:5000 --name cerebrops-app \
 
 ### 5. Access the Dashboards
 
-- **CerebrOps Dashboard**: http://localhost:5000
+- **CerebrOps Dashboard**: http://localhost:5000/dashboard
 - **Kibana**: http://localhost:5601
 - **Elasticsearch**: http://localhost:9200
 
@@ -448,7 +450,7 @@ kubectl apply -f k8s/
 
 ### Configuration Files
 
-- `k8s/secrets.yaml`: Kubernetes secrets configuration
+- `k8s/base/secrets.yaml`: Kubernetes secrets configuration
 - `elk/docker-compose.yml`: ELK stack configuration
 - `.github/workflows/ci-cd.yml`: CI/CD pipeline configuration
 
