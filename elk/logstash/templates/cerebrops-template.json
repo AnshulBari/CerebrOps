@@ -1,0 +1,30 @@
+{
+  "index_patterns": ["cerebrops-logs-*", "cerebrops-anomalies-*"],
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "index.lifecycle.name": "cerebrops-ilm-policy"
+  },
+  "mappings": {
+    "properties": {
+      "@timestamp": { "type": "date" },
+      "log_level": { "type": "keyword" },
+      "log_message": { "type": "text" },
+      "log_module": { "type": "keyword" },
+      "application": { "type": "keyword" },
+      "environment": { "type": "keyword" },
+      "severity": { "type": "keyword" },
+      "cpu_usage": { "type": "float" },
+      "memory_usage": { "type": "float" },
+      "disk_usage": { "type": "float" },
+      "error_rate": { "type": "float" },
+      "response_time": { "type": "float" },
+      "anomaly_type": { "type": "keyword" },
+      "host": {
+        "properties": {
+          "name": { "type": "keyword" }
+        }
+      }
+    }
+  }
+}

@@ -176,7 +176,10 @@ class SlackAlerter:
             anomaly_count = anomaly_results.get('anomaly_count', 0)
             anomaly_percentage = anomaly_results.get('anomaly_percentage', 0)
 
+            method = anomaly_results.get('method')
             message = f"🧠 CerebrOps detected {anomaly_count} anomalies ({anomaly_percentage}% of data points)"
+            if method:
+                message += f" [{method}]"
 
             return self.send_slack_alert(message, severity, anomaly_results)
 
@@ -264,6 +267,10 @@ class SlackAlerter:
         return self.send_slack_alert(message, severity)
 
 
+# Module-level singleton for the standalone function
+_default_alerter = None
+
+
 def send_slack_alert(message: str, webhook_url: str = None, severity: str = "medium") -> bool:
     """
     Simple function to send a Slack alert (for backward compatibility)
@@ -276,8 +283,10 @@ def send_slack_alert(message: str, webhook_url: str = None, severity: str = "med
     Returns:
         bool: True if successful
     """
-    alerter = SlackAlerter(webhook_url)
-    return alerter.send_slack_alert(message, severity)
+    global _default_alerter
+    if _default_alerter is None or webhook_url:
+        _default_alerter = SlackAlerter(webhook_url)
+    return _default_alerter.send_slack_alert(message, severity)
 
 
 def main():
