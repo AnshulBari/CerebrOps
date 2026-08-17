@@ -94,7 +94,7 @@ jobs:
         echo "kustomize build OK for ${{ inputs.environment }}"
 
     - name: Open promotion PR
-      uses: peter-evans/create-pull-request@v6
+      uses: peter-evans/create-pull-request@v8
       with:
         branch: "promote/${{ inputs.environment }}/${{ github.sha }}"
         delete-branch: true
