@@ -207,7 +207,9 @@ jobs:
     needs: [test, build, security-scan, validate-manifests]
     runs-on: ubuntu-latest
     name: Deploy to Kubernetes
-    if: github.ref == 'refs/heads/main'
+    # DISABLED until AWS/OIDC + EKS are configured (see GITHUB_SETUP.md).
+    # Re-enable by restoring:  if: github.ref == 'refs/heads/main'
+    if: false
     permissions:
       contents: read
       id-token: write  # OIDC -> short-lived cloud credentials (no long-lived K8S_TOKEN)
