@@ -1,0 +1,33 @@
+# ArgoCD Application for the dev environment (GitOps promotion target).
+# Image digest is driven by .github/workflows/promote.yml via the overlay's
+# images block, or by ArgoCD Image Updater watching ghcr.io tags.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cerebrops-dev
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/anshulbari/cerebrops.git
+    targetRevision: main
+    path: k8s/overlays/dev
+    kustomize:
+      images:
+      - ghcr.io/anshulbari/cerebrops:latest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
