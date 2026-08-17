@@ -17,7 +17,10 @@ spec:
       labels:
         app: cerebrops
         component: web
+        app.kubernetes.io/name: cerebrops-app
+        app.kubernetes.io/instance: cerebrops-app
     spec:
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -27,7 +30,8 @@ spec:
           type: RuntimeDefault
       containers:
       - name: cerebrops-web
-        image: ghcr.io/anshulbari/cerebrops:latest
+        image: ghcr.io/anshulbari/cerebrops:main
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
           name: http

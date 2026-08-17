@@ -79,8 +79,11 @@ create_secrets() {
 deploy_app() {
     print_status "Deploying CerebrOps application..."
     
-    # Update image tag in deployment
-    sed "s|cerebrops:latest|cerebrops:$IMAGE_TAG|g" k8s/base/deployment.yaml > /tmp/deployment.yaml
+    # Update image tag in deployment/cronjobs/backup (source pins :main;
+    # IMAGE_TAG may be a digest or release tag)
+    sed "s|cerebrops:main|cerebrops:$IMAGE_TAG|g" k8s/base/deployment.yaml > /tmp/deployment.yaml
+    sed "s|cerebrops:main|cerebrops:$IMAGE_TAG|g" k8s/base/cronjobs.yaml > /tmp/cronjobs.yaml
+    sed "s|cerebrops:main|cerebrops:$IMAGE_TAG|g" k8s/base/backup.yaml > /tmp/backup.yaml
     
     # Apply manifests (core app + hardening: HPA, PDB, NetworkPolicy,
     # RBAC, persistent volumes, backup). cert-manager/ExternalSecrets are
@@ -88,8 +91,8 @@ deploy_app() {
     # k8s/base/kustomization.yaml).
     kubectl apply -f k8s/base/secrets.yaml -n $NAMESPACE
     kubectl apply -f /tmp/deployment.yaml -n $NAMESPACE
-    kubectl apply -f k8s/base/cronjobs.yaml -n $NAMESPACE
-    kubectl apply -f k8s/base/backup.yaml -n $NAMESPACE
+    kubectl apply -f /tmp/cronjobs.yaml -n $NAMESPACE
+    kubectl apply -f /tmp/backup.yaml -n $NAMESPACE
     kubectl apply -f k8s/base/hpa.yaml -n $NAMESPACE
     kubectl apply -f k8s/base/pdb.yaml -n $NAMESPACE
     kubectl apply -f k8s/base/network-policy.yaml -n $NAMESPACE

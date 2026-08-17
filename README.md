@@ -1,573 +1,260 @@
-# 🧠 CerebrOps - AI-Powered CI/CD Monitoring System
+# 🧠 CerebrOps — AI-Powered CI/CD Monitoring
 
-[![CI/CD Pipeline](https://github.com/YOUR_USERNAME/CerebrOps/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/YOUR_USERNAME/CerebrOps/actions/workflows/ci-cd.yml)
+[![CI/CD Pipeline](https://github.com/AnshulBari/CerebrOps/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/AnshulBari/CerebrOps/actions/workflows/ci-cd.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-CerebrOps is an intelligent CI/CD monitoring system that combines traditional monitoring with AI-powered anomaly detection to provide proactive alerts and insights for your development pipeline.
+CerebrOps watches your CI/CD pipelines and application health, learns what "normal" looks like, and tells you — with context — when something is wrong. It combines real telemetry, two AI detectors, structured logging, and a polished web product into one self-hosted system.
 
-> 🧭 **New here?** Read **[PROJECT_EXPLAINED.md](PROJECT_EXPLAINED.md)** — a beginner-friendly tour of the problem, our approach, the architecture, every module, the workflow, and the tech stack.
+> 🧭 **New here?** Read **[PROJECT_EXPLAINED.md](PROJECT_EXPLAINED.md)** — a beginner-friendly tour of the problem, our approach, the architecture, every module, the workflow, and the tech stack. The roadmap lives in **[ROADMAP.md](ROADMAP.md)**.
 
-## 🎯 Features
+## ✨ Highlights
 
-- **🔍 Real-time Monitoring**: Continuous monitoring of application metrics and system health
-- **🤖 AI Anomaly Detection**: Machine learning-based anomaly detection using Isolation Forest
-- **📊 Comprehensive Dashboard**: Web-based dashboard with real-time metrics visualization  
-- **🚨 Intelligent Alerting**: Smart Slack notifications with severity-based routing
-- **📈 ELK Stack Integration**: Complete logging solution with Elasticsearch, Logstash, and Kibana
-- **🚀 CI/CD Pipeline**: Automated testing, building, and deployment with GitHub Actions
-- **🐳 Container Ready**: Full Docker and Kubernetes support
-- **⚡ Performance Testing**: Automated load testing with k6
-- **🔒 Security Scanning**: Built-in vulnerability scanning with Trivy
+- **🤖 Two AI detectors** — an Isolation Forest model (v1) plus a seasonal forecast-residual detector (v2) that only activates after enough real history exists. Both refuse to guess when data is insufficient.
+- **📊 Honest telemetry** — every metric, alert, and pipeline event lands in a SQLite store. No fabricated data anywhere; the dashboard starts from real webhooks.
+- **📈 Alerts with a story** — anomalies include features, severity, correlated deploys, and optional LLM-generated summaries (opt-in), delivered to Slack.
+- **🪟 Premium web product** — a cinematic landing page (video hero), a real-time dashboard with auth (login/register/logout, lockout, password reset), and an interactive Three.js "experience" page.
+- **🔭 Fully observable** — structured JSON logs shipped to ELK, Prometheus `/metrics-prom` endpoint, provisioned Grafana dashboards, and SLO rules.
+- **🔒 Production-shaped** — session auth, API-key-gated webhooks, OIDC short-lived cloud credentials, GitOps via ArgoCD, and Kubernetes manifests validated by kubeconform + polaris in CI.
 
 ## 🏗️ Architecture
 
 ```mermaid
-graph TB
-    A[GitHub Repository] --> B[GitHub Actions]
-    B --> C[Docker Build]
-    C --> D[Container Registry]
-    D --> E[Kubernetes Cluster]
-    
-    E --> F[Flask Application]
-    F --> G[Metrics Collection]
-    G --> H[AI Anomaly Detection]
-    H --> I[Slack Alerts]
-    
-    F --> J[Log Generation]
-    J --> K[Filebeat]
-    K --> L[Logstash]
-    L --> M[Elasticsearch]
-    M --> N[Kibana Dashboard]
-    
-    O[Monitoring Script] --> G
-    O --> H
-    P[CronJob] --> O
+flowchart TB
+    subgraph CI["CI/CD (GitHub Actions, k6, etc.)"]
+        GH[Pipeline webhook]
+    end
+    subgraph WEB["Flask app (app.py)"]
+        GH -->|"POST /api/v1/pipeline/events"| APP
+        APP --> STORE[(SQLite metrics store)]
+        APP --> LOGS[JSON logs]
+        APP -->|"/metrics-prom"| PROM[Prometheus]
+        PROM --> GRAF[Grafana]
+    end
+    subgraph AI["Monitoring (monitor.py)"]
+        MON[Monitor cycle] --> V1[Isolation Forest]
+        MON --> V2[Forecast-residual]
+        V1 & V2 --> MOD[(joblib model repo)]
+        MON --> AL[Slack alerts]
+    end
+    STORE --> DASH[Dashboard UI]
+    STORE --> MON
+    MON --> STORE
+    LOGS -->|Filebeat| LS[Logstash] --> ES[(Elasticsearch)] --> KI[Kibana]
 ```
 
-### Components Overview
+**Key components**
 
-- **Flask Application** (`app.py`): Main web application with health checks and metrics endpoints
-- **AI Anomaly Detector** (`anomaly_detector.py`): Machine learning module for detecting system anomalies
-- **Alert System** (`alerts.py`): Slack integration for intelligent notifications
-- **Monitoring Orchestrator** (`monitor.py`): Main monitoring script that coordinates all components
-- **ELK Stack**: Complete logging and visualization solution
-- **CI/CD Pipeline**: Automated testing, building, and deployment workflow
+| Component | File | Role |
+|---|---|---|
+| Web app + API | `app.py` | Landing/dashboard/experience pages, auth, v1 REST API, webhook ingestion, `/metrics-prom` |
+| Telemetry store | `metrics_store.py` | SQLite persistence for metrics, alerts, pipeline events, users, lockouts |
+| Monitor | `monitor.py` | Runs detection cycles; supports `--single-check` and `--interval` |
+| v1 detector | `anomaly_detector.py` | Isolation Forest on engineered windows; drift-based retraining |
+| v2 detector | `forecast_detector.py` | Seasonal forecast-residual; activates after ≥7 days of history |
+| Model repository | `model_repository.py` | joblib persistence + versioned model cards |
+| Root cause | `root_cause.py` | Correlates anomalies with deploys and SLO burn |
+| Alerts | `alerts.py` | Slack delivery with severity and context |
+| LLM summaries | `llm_summary.py` | Opt-in narrative summaries (mock mode for offline testing) |
+| Logging | `logging_config.py` | Structured JSON logs with rotation |
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- Docker and Docker Compose
-- Python 3.11+
-- kubectl (for Kubernetes deployment)
-- Git
-
-### 1. Clone the Repository
+**Prerequisites:** Python 3.11+, Docker (optional, for ELK/Grafana), kubectl (optional, for K8s).
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/CerebrOps.git
+# 1. Clone and install
+git clone https://github.com/AnshulBari/CerebrOps.git
 cd CerebrOps
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements-dev.txt
+
+# 2. Configure (optional — dev fallbacks exist for everything except production)
+cp .env.example .env             # then edit as needed
+# At minimum, set a session key:
+#   CEREBROPS_SECRET_KEY=your-random-secret
+
+# 3. Run the app
+python app.py                    # → http://localhost:5000
 ```
 
-### 2. Set Up Environment Variables
+Open **http://localhost:5000** — the landing page. Register an account (top-right) to reach the **dashboard** (`/dashboard`), and explore the Three.js **experience** page (`/experience`).
 
-Create a `.env` file in the project root:
+### Send a real pipeline event
+
+The dashboard is only alive once real data flows. Post a webhook:
 
 ```bash
-# Slack Configuration
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
-
-# Application Configuration
-APP_URL=http://localhost:5000
-ENVIRONMENT=development
-
-# ELK Configuration
-ELASTICSEARCH_HOST=localhost:9200
-KIBANA_HOST=localhost:5601
+curl -X POST http://localhost:5000/api/v1/pipeline/events \
+  -H 'Content-Type: application/json' \
+  -d '{"status":"success","pipeline_id":"run-1842","stage":"deploy","duration":42,"branch":"main","commit_hash":"abc1234","source":"github-actions"}'
 ```
 
-### 3. Start the ELK Stack
+If `CEREBROPS_API_KEY` is set, add `-H 'X-API-Key: <key>'`. You'll get `202` with an `event_id`, and the event appears on the dashboard. The empty-state card on the dashboard shows the exact curl command with a copy button.
+
+### Run the monitor
 
 ```bash
-cd elk
-docker-compose up -d
+python monitor.py --single-check          # one detection pass
+python monitor.py --interval 60           # continuous monitoring
+python monitor.py --single-check --app-url http://localhost:5000 --slack-webhook https://hooks.slack.com/...
 ```
 
-Wait for all services to be healthy (this may take a few minutes):
-
-```bash
-docker-compose ps
-```
-
-### 4. Build and Run the Application
-
-```bash
-# Build the Docker image
-docker build -t cerebrops:latest .
-
-# Run the application
-docker run -d -p 5000:5000 --name cerebrops-app \
-  -e SLACK_WEBHOOK_URL=$SLACK_WEBHOOK_URL \
-  -v $(pwd)/logs:/app/logs \
-  cerebrops:latest
-```
-
-### 5. Access the Dashboards
-
-- **CerebrOps Dashboard**: http://localhost:5000/dashboard
-- **Kibana**: http://localhost:5601
-- **Elasticsearch**: http://localhost:9200
-
-### 6. Start Monitoring
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run monitoring (single check)
-python monitor.py --single-check
-
-# Run continuous monitoring
-python monitor.py --interval 60
-```
-
-## 🔧 Detailed Setup
-
-### Local Development Setup
-
-1. **Python Environment**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
-
-2. **Run Tests**:
-   ```bash
-   pytest tests/ -v --cov=.
-   ```
-
-3. **Start Development Server**:
-   ```bash
-   python app.py
-   ```
-
-### Kubernetes Deployment
-
-1. **Create Secrets**:
-   ```bash
-   # Create Slack webhook secret
-   kubectl create secret generic cerebrops-secrets \
-     --from-literal=slack-webhook-url='YOUR_WEBHOOK_URL'
-   ```
-
-2. **Deploy Application**:
-   ```bash
-   kubectl apply -f k8s/
-   ```
-
-3. **Check Deployment Status**:
-   ```bash
-   kubectl get pods -l app=cerebrops
-   kubectl logs -f deployment/cerebrops-app
-   ```
-
-4. **Access Application**:
-   ```bash
-   kubectl port-forward service/cerebrops-service 8080:80
-   ```
-
-### CI/CD Pipeline Setup
-
-1. **GitHub Secrets**:
-   Configure the following secrets in your GitHub repository:
-   - `SLACK_WEBHOOK_URL`: Your Slack webhook URL
-   - `DOCKER_USERNAME`: Docker Hub username (optional)
-   - `DOCKER_TOKEN`: Docker Hub token (optional)
-   - `K8S_SERVER`: Kubernetes cluster server URL
-   - `K8S_TOKEN`: Kubernetes service account token
-
-2. **Enable Actions**:
-   The pipeline automatically triggers on pushes to `main` branch and pull requests.
-
-## 🤖 AI Anomaly Detection
-
-### How It Works
-
-The AI anomaly detection system uses an Isolation Forest algorithm to identify unusual patterns in system metrics:
-
-1. **Data Collection**: Gathers metrics like CPU usage, memory usage, disk usage, error rates
-2. **Feature Engineering**: Processes and normalizes the collected data
-3. **Model Training**: Trains an Isolation Forest model on historical data
-4. **Anomaly Detection**: Identifies data points that deviate from normal patterns
-5. **Alert Generation**: Sends intelligent alerts based on severity levels
-
-### Supported Metrics
-
-- CPU Usage (%)
-- Memory Usage (%)  
-- Disk Usage (%)
-- Error Rate (%)
-- Response Time (ms)
-- Request Count
-- Custom Application Metrics
-
-### Anomaly Types
-
-- **High Resource Usage**: CPU, Memory, or Disk usage spikes
-- **Performance Degradation**: Slow response times or high error rates
-- **System Errors**: Application errors or exceptions
-- **Traffic Anomalies**: Unusual request patterns
-
-### Customization
-
-You can customize the anomaly detection by modifying `anomaly_detector.py`:
-
-```python
-# Adjust contamination rate (expected percentage of anomalies)
-detector = AnomalyDetector(contamination=0.1)  # 10% expected anomalies
-
-# Add custom metrics
-detector.feature_columns.extend(['custom_metric_1', 'custom_metric_2'])
-
-# Modify severity thresholds
-def _calculate_severity(self, anomaly_percentage, scores):
-    # Custom severity logic here
-    pass
-```
-
-## 🚨 Alerting System
-
-### Slack Integration
-
-The system sends intelligent Slack alerts with rich formatting:
-
-- **Color-coded messages** based on severity
-- **Contextual information** about detected anomalies
-- **Actionable recommendations** for resolving issues
-- **Metric details** and trends
-
-### Alert Types
-
-1. **Anomaly Alerts**: When AI detects unusual system behavior
-2. **Health Alerts**: When application health checks fail
-3. **Pipeline Alerts**: CI/CD pipeline status notifications
-4. **System Alerts**: Critical system errors or failures
-
-### Customizing Alerts
-
-Modify `alerts.py` to customize alert behavior:
-
-```python
-# Custom severity mapping
-severity_map = {
-    'critical': '#ff0000',  # Red
-    'high': '#ff6b35',      # Orange-Red
-    'medium': '#ff9500',    # Orange
-    'low': '#36a64f'        # Green
-}
-
-# Add custom alert types
-def send_custom_alert(self, metric_name, threshold, current_value):
-    # Custom alert logic
-    pass
-```
-
-## 📊 Monitoring and Visualization
-
-### Kibana Dashboards
-
-The ELK stack provides comprehensive logging and visualization:
-
-1. **Application Logs**: Real-time application log analysis
-2. **System Metrics**: Resource usage trends and patterns
-3. **Error Analysis**: Error rate tracking and root cause analysis
-4. **Performance Metrics**: Response time and throughput monitoring
-
-### Creating Custom Dashboards
-
-1. Open Kibana at http://localhost:5601
-2. Go to **Management > Index Patterns**
-3. Create index pattern: `cerebrops-logs-*`
-4. Go to **Dashboard** and create visualizations
-
-### Key Metrics to Monitor
-
-- Application response time percentiles
-- Error rate trends
-- Resource utilization patterns
-- Request volume and patterns
-- Anomaly detection results
-
-## 🔒 Security
-
-### Security Features
-
-- **Container Security**: Regular vulnerability scanning with Trivy
-- **Code Analysis**: Static code analysis with CodeQL
-- **Secrets Management**: Kubernetes secrets for sensitive data
-- **Network Security**: Service mesh ready architecture
-- **Access Control**: RBAC configuration for Kubernetes
-
-### Security Best Practices
-
-1. **Regular Updates**: Keep dependencies and base images updated
-2. **Secret Rotation**: Regularly rotate API keys and tokens
-3. **Access Control**: Implement least privilege access
-4. **Monitoring**: Monitor for security-related anomalies
-5. **Backup**: Regular backup of configuration and data
-
-## ⚡ Performance
-
-### Performance Features
-
-- **Async Processing**: Non-blocking anomaly detection
-- **Caching**: In-memory caching for frequently accessed data  
-- **Resource Limits**: Configurable CPU and memory limits
-- **Auto-scaling**: Kubernetes HPA support
-- **Load Testing**: Automated performance testing with k6
-
-### Performance Tuning
-
-1. **Adjust Model Parameters**:
-   ```python
-   # Reduce model complexity for better performance
-   model = IsolationForest(n_estimators=50, max_samples=0.5)
-   ```
-
-2. **Configure Resource Limits**:
-   ```yaml
-   resources:
-     requests:
-       memory: "256Mi"
-       cpu: "250m"
-     limits:
-       memory: "512Mi" 
-       cpu: "500m"
-   ```
-
-3. **Optimize Monitoring Interval**:
-   ```bash
-   # Increase interval for less frequent checks
-   python monitor.py --interval 600  # 10 minutes
-   ```
+## ⚙️ Configuration
+
+All settings are environment variables (see `.env.example`). Key ones:
+
+| Variable | Purpose | Default |
+|---|---|---|
+| `CEREBROPS_SECRET_KEY` | Session signing key — **required in production** (startup refuses the dev fallback) | dev-only fallback |
+| `CEREBROPS_API_KEY` | API key for `/api/v1/*` and webhooks (optional) | unset = open |
+| `CEREBROPS_DB_PATH` | SQLite telemetry store path | `data/cerebrops.db` |
+| `CEREBROPS_MODEL_DIR` | Persisted models + model cards | `models/` |
+| `CEREBROPS_AUTH_DISABLED` | `1` disables dashboard auth (dev/testing) | unset |
+| `FLASK_ENV` / `CEREBROPS_ENV` | `development` \| `production` | `development` |
+| `APP_URL` | Base URL the monitor checks | `http://localhost:5000` |
+| `SLACK_WEBHOOK_URL` | Alert destination | unset = no alerts |
+| `LOG_LEVEL` | Logging level | `INFO` |
+| `ANOMALY_THRESHOLD` | Isolation Forest contamination | `0.1` |
+| `RETRAIN_MIN_INTERVAL` / `RETRAIN_MAX_INTERVAL` | Drift-retraining bounds (s) | `3600` / `604800` |
+| `FORECAST_MIN_HISTORY_DAYS` | v2 activation threshold | `7` |
+| `LLM_API_URL` / `LLM_API_KEY` / `LLM_MODEL` | Opt-in LLM summaries | disabled |
+| `LLM_MODE=mock` | Deterministic offline summaries | unset |
+
+## 🧠 AI Anomaly Detection
+
+Two detectors run against real windowed features (rolling mean/std/slope over 15m/1h/24h):
+
+- **v1 — Isolation Forest** (`anomaly_detector.py`): unsupervised outlier detection over engineered features. Retrains on **drift** (feature-distribution shift beyond a threshold), not a fixed timer.
+- **v2 — Forecast-residual** (`forecast_detector.py`): builds a seasonal profile per hour-of-week and flags points whose residual crosses a z-score band. Activates only once ≥7 days of real history exists.
+- **Evaluation** (`scripts/evaluate_models.py`): labels real data for precision/recall. `--self-check` gates CI on synthetic labeled data; the meaningful number comes from ≥2 weeks of production labels (`--labels`).
+- **Root cause** (`root_cause.py`): correlates anomalies with recent deploys and SLO burn so alerts carry "this looks like the deploy at 14:02" instead of just a number.
+
+## 📡 Observability
+
+- **Structured JSON logs** with rotation (`logging_config.py`) — shipped to **ELK** via `elk/docker-compose.yml` (Filebeat → Logstash → Elasticsearch → Kibana).
+- **Prometheus** endpoint at `/metrics-prom`; `monitoring/` holds Prometheus config, SLO alert rules, and **provisioned Grafana dashboards**.
+- **Verify end-to-end**: `scripts/verify-observability.sh` validates compose configs, and (with the Docker daemon up) boots the stack and asserts a tagged request's log line appears in Elasticsearch within 30s.
+- **Runbooks** in `docs/runbooks/` cover incidents, restores, SLO burn, and model evaluation.
+
+## 🔌 API
+
+`/api/v1/*` endpoints are key-gated when `CEREBROPS_API_KEY` is set (`X-API-Key` header or `?api_key=`):
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/v1/health` | GET | Service health |
+| `/api/v1/metrics` | GET | Recent stored metrics |
+| `/api/v1/anomalies` | GET | Recent anomaly detections |
+| `/api/v1/alerts` | GET | Recent alerts |
+| `/api/v1/pipeline` | GET | Pipeline event history |
+| `/api/v1/pipeline/events` | POST | Ingest pipeline webhooks |
+| `/health` | GET | Liveness (probes) |
+| `/metrics-prom` | GET | Prometheus text format |
+| `/logs` | GET | Recent structured log lines |
+| `/simulate-error` | GET | Generate a 500 for testing observability |
+
+See **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** for the full reference.
 
 ## 🧪 Testing
 
-### Test Suite
-
-The project includes comprehensive tests:
-
-- **Unit Tests**: Individual component testing
-- **Integration Tests**: End-to-end functionality testing
-- **Performance Tests**: Load testing with k6
-- **Security Tests**: Vulnerability scanning
-
-### Running Tests
-
 ```bash
-# Run all tests
-pytest tests/ -v --cov=.
-
-# Run specific test files
-pytest tests/test_app.py -v
-pytest tests/test_anomaly_detector.py -v
-pytest tests/test_alerts.py -v
-
-# Run with coverage report
-pytest tests/ --cov=. --cov-report=html
+pytest tests/ -v --cov=. --cov-report=html   # full suite (currently 135 tests)
+flake8 . --count --select=E9,F63,F7,F82      # strict lint gate (as run in CI)
 ```
 
-### Load Testing
+The suite covers the store, both detectors, root cause, alerts, LLM summaries, backup/restore, model evaluation, auth flows (lockout, password reset, enumeration protection), and the web UI. CI also runs k6 performance tests and Trivy/CodeQL security scans.
+
+## 🚀 CI/CD Pipeline
+
+`.github/workflows/ci-cd.yml` — six jobs:
+
+| Job | What it does |
+|---|---|
+| **Run Tests** | flake8 strict gate, pytest with coverage, coverage upload |
+| **Build and Push** | Buildx → GHCR with semver/sha/`main` tags, digest output |
+| **Security Scan + SBOM** | Trivy image scan, SBOM generation, CodeQL |
+| **Validate Manifests** | kustomize render all overlays → kubeconform (strict, k8s 1.29) → polaris audit (fail on danger / score < 90) |
+| **Deploy** (main only) | OIDC short-lived AWS creds → EKS, digest-pinned image, smoke tests |
+| **Performance Testing** | k6 load tests |
+
+`deploy/` holds ArgoCD Applications for GitOps promotion of `k8s/` (base + dev/staging overlays). See **[GITHUB_SETUP.md](GITHUB_SETUP.md)** for OIDC/secrets setup.
+
+## 📦 Deployment
 
 ```bash
-# Install k6
-# ... (platform-specific installation)
+# Docker
+docker build -t cerebrops:latest .
+docker run -d -p 5000:5000 --name cerebrops-app -e CEREBROPS_SECRET_KEY=... cerebrops:latest
 
-# Run performance tests
-k6 run performance-tests.js
+# Kubernetes (kustomize)
+kubectl apply -k k8s/                      # production (k8s/kustomization.yaml)
+kubectl apply -k k8s/overlays/dev          # dev overlay
+kubectl apply -k k8s/overlays/staging      # staging overlay
+
+# Manual deploy script (env vars: NAMESPACE, IMAGE_TAG)
+IMAGE_TAG=v1.2.3 NAMESPACE=cerebrops ./scripts/deploy.sh
 ```
 
-## 🚀 Deployment Options
+The manifests are pinned to the real `main` image tag; CI rewrites it to the build **digest** at deploy time for reproducibility. See **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** and **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)**.
 
-### Local Development
+## 🗂️ Project Structure
 
-```bash
-docker-compose -f docker-compose.dev.yml up
+```
+CerebrOps/
+├── app.py                  # Flask app, auth, API, webhooks
+├── monitor.py              # monitoring orchestrator
+├── anomaly_detector.py     # v1 Isolation Forest
+├── forecast_detector.py    # v2 forecast-residual
+├── metrics_store.py        # SQLite telemetry store
+├── model_repository.py     # joblib models + model cards
+├── root_cause.py           # deploy/SLO correlation
+├── alerts.py               # Slack alerts
+├── llm_summary.py          # opt-in LLM summaries
+├── logging_config.py       # structured JSON logging
+├── static/                 # css/ js/ vendor/ (Three.js, Chart.js)
+├── templates/              # landing, dashboard, experience, auth pages
+├── k8s/                    # kustomize base/ + overlays/
+├── deploy/                 # ArgoCD applications
+├── monitoring/             # Prometheus + Grafana provisioning
+├── elk/                    # ELK stack (compose + configs)
+├── scripts/                # backup, restore drill, evaluation, deploy, observability verify
+├── tests/                  # 135 tests across all modules
+└── docs/runbooks/          # incident, restore, SLO, model-evaluation runbooks
 ```
 
-### Production Kubernetes
+## 📚 Documentation
 
-```bash
-# Apply production manifests
-kubectl apply -f k8s/production/
+| Document | What it covers |
+|---|---|
+| [PROJECT_EXPLAINED.md](PROJECT_EXPLAINED.md) | Beginner-friendly deep dive: problem, approach, architecture, workflow, stack |
+| [ROADMAP.md](ROADMAP.md) | The phase-by-phase plan and current status |
+| [QUICKSTART.md](QUICKSTART.md) | Fast local setup |
+| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Production deployment walkthrough |
+| [GITHUB_SETUP.md](GITHUB_SETUP.md) | OIDC, secrets, registry, ArgoCD setup |
+| [API_DOCUMENTATION.md](API_DOCUMENTATION.md) | Full v1 API reference |
+| [OPERATIONS_MANUAL.md](OPERATIONS_MANUAL.md) | Day-to-day operations |
+| [QUICK_REFERENCE.md](QUICK_REFERENCE.md) | Cheat sheet for common tasks |
+| [SETUP_COMPLETE.md](SETUP_COMPLETE.md) | Post-setup verification checklist |
+| [docs/runbooks/](docs/runbooks/) | Incident response, restore drill, SLO burn, model evaluation |
 
-# Monitor deployment
-kubectl rollout status deployment/cerebrops-app
-```
+## 🗺️ Status
 
-### Cloud Platforms
+Phases 0–5 of the roadmap are implemented: real-data telemetry store, ELK + Grafana observability, both AI detectors with drift retraining, the product dashboard + API + auth, CI/CD & K8s hardening (OIDC, kustomize, kubeconform/polaris gates, HPA/PDB/NetworkPolicy), and the ops layer (runbooks, SLOs, backup/restore drills, LLM summaries).
 
-#### AWS EKS
-```bash
-# Configure kubectl for EKS
-aws eks update-kubeconfig --name your-cluster
-
-# Deploy
-kubectl apply -f k8s/
-```
-
-#### Google GKE
-```bash
-# Configure kubectl for GKE
-gcloud container clusters get-credentials your-cluster
-
-# Deploy
-kubectl apply -f k8s/
-```
-
-#### Azure AKS
-```bash
-# Configure kubectl for AKS
-az aks get-credentials --resource-group myResourceGroup --name myAKSCluster
-
-# Deploy
-kubectl apply -f k8s/
-```
-
-## 📝 Configuration
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `SLACK_WEBHOOK_URL` | Slack webhook for alerts | None |
-| `APP_URL` | Application URL for monitoring | `http://localhost:5000` |
-| `ENVIRONMENT` | Environment name | `development` |
-| `LOG_LEVEL` | Logging level | `INFO` |
-| `ANOMALY_THRESHOLD` | Anomaly detection threshold | `0.1` |
-| `MONITORING_INTERVAL` | Monitoring interval in seconds | `300` |
-
-### Configuration Files
-
-- `k8s/base/secrets.yaml`: Kubernetes secrets configuration
-- `elk/docker-compose.yml`: ELK stack configuration
-- `.github/workflows/ci-cd.yml`: CI/CD pipeline configuration
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-1. **ELK Stack Not Starting**:
-   ```bash
-   # Check Docker resources
-   docker system df
-   
-   # Increase Docker memory limit (8GB recommended)
-   # Restart ELK stack
-   cd elk && docker-compose restart
-   ```
-
-2. **Anomaly Detection Failing**:
-   ```bash
-   # Check application connectivity
-   curl http://localhost:5000/health
-   
-   # Check logs
-   docker logs cerebrops-app
-   ```
-
-3. **Slack Alerts Not Working**:
-   ```bash
-   # Verify webhook URL
-   echo $SLACK_WEBHOOK_URL
-   
-   # Test webhook
-   python -c "from alerts import SlackAlerter; SlackAlerter('$SLACK_WEBHOOK_URL').send_slack_alert('Test')"
-   ```
-
-4. **Kubernetes Deployment Issues**:
-   ```bash
-   # Check pod status
-   kubectl get pods -l app=cerebrops
-   
-   # Check pod logs
-   kubectl logs -f deployment/cerebrops-app
-   
-   # Check events
-   kubectl get events --sort-by='.lastTimestamp'
-   ```
-
-### Debug Mode
-
-Enable debug logging for detailed troubleshooting:
-
-```bash
-python monitor.py --debug
-```
+**What remains is what only production can provide:** ≥2 weeks of real labeled traffic for the precision/recall number, and the first live-cluster `kubectl apply` — the manifests are schema- and policy-validated, but a real cluster is the final proof.
 
 ## 🤝 Contributing
 
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make changes and add tests
-4. Run tests: `pytest tests/`
-5. Commit changes: `git commit -m 'Add amazing feature'`
-6. Push to branch: `git push origin feature/amazing-feature`
-7. Open a Pull Request
-
-### Code Style
-
-- Follow PEP 8 for Python code
-- Use type hints where applicable
-- Add docstrings for functions and classes
-- Write tests for new functionality
-
-### Commit Messages
-
-Follow conventional commits format:
-- `feat:` - New features
-- `fix:` - Bug fixes
-- `docs:` - Documentation changes
-- `test:` - Test changes
-- `refactor:` - Code refactoring
+1. Fork the repo, create a feature branch (`git checkout -b feature/...`).
+2. Make changes **with tests** — the suite must stay green (`pytest tests/`), flake8 strict pass must be clean, and K8s changes should render + pass `kubeconform`/`polaris`.
+3. Use [conventional commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`, `test:`, `refactor:`.
+4. Open a pull request.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **scikit-learn** for machine learning algorithms
-- **Flask** for the web framework
-- **Elastic Stack** for logging and visualization
-- **Docker** and **Kubernetes** for containerization
-- **GitHub Actions** for CI/CD automation
-
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/YOUR_USERNAME/CerebrOps/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/YOUR_USERNAME/CerebrOps/discussions)
-- **Wiki**: [Project Wiki](https://github.com/YOUR_USERNAME/CerebrOps/wiki)
-
-## 🗺️ Roadmap
-
-### Version 2.0
-- [ ] Multi-cluster support
-- [ ] Advanced ML models (LSTM, Transformers)
-- [ ] Custom metrics integration
-- [ ] Real-time streaming analytics
-
-### Version 2.1
-- [ ] Web UI for configuration
-- [ ] Mobile app for alerts
-- [ ] Integration with popular monitoring tools
-- [ ] Advanced reporting features
+MIT — see [LICENSE](LICENSE).
 
 ---
 
-**Built with ❤️ by the CerebrOps Team**
-
-*Empowering DevOps with Artificial Intelligence*
+**built by [anshul bari](https://www.anshulbari.me/)** · *Empowering DevOps with Artificial Intelligence*

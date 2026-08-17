@@ -12,7 +12,13 @@ spec:
     spec:
       backoffLimit: 2
       template:
+        metadata:
+          labels:
+            app: cerebrops
+            app.kubernetes.io/name: cerebrops-backup
+            app.kubernetes.io/instance: cerebrops-backup
         spec:
+          automountServiceAccountToken: false
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000
@@ -22,7 +28,8 @@ spec:
               type: RuntimeDefault
           containers:
           - name: backup
-            image: ghcr.io/anshulbari/cerebrops:latest
+            image: ghcr.io/anshulbari/cerebrops:main
+            imagePullPolicy: Always
             command:
             - python
             - scripts/backup.py

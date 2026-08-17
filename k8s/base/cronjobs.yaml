@@ -10,8 +10,14 @@ spec:
     spec:
       backoffLimit: 3
       template:
+        metadata:
+          labels:
+            app: cerebrops
+            app.kubernetes.io/name: cerebrops-anomaly-detection
+            app.kubernetes.io/instance: cerebrops-anomaly-detection
         spec:
           serviceAccountName: cerebrops-deployer
+          automountServiceAccountToken: false
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000
@@ -21,7 +27,8 @@ spec:
               type: RuntimeDefault
           containers:
           - name: anomaly-detector
-            image: ghcr.io/anshulbari/cerebrops:latest
+            image: ghcr.io/anshulbari/cerebrops:main
+            imagePullPolicy: Always
             command:
             - python
             - monitor.py
@@ -85,7 +92,13 @@ spec:
     spec:
       backoffLimit: 3
       template:
+        metadata:
+          labels:
+            app: cerebrops
+            app.kubernetes.io/name: cerebrops-log-cleanup
+            app.kubernetes.io/instance: cerebrops-log-cleanup
         spec:
+          automountServiceAccountToken: false
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000
@@ -96,6 +109,7 @@ spec:
           containers:
           - name: log-cleanup
             image: busybox:1.35
+            imagePullPolicy: Always
             command:
             - /bin/sh
             - -c

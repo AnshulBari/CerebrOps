@@ -38,4 +38,4 @@ patches:
       value: http://cerebrops-service.staging.svc.cluster.local
 images:
 - name: ghcr.io/anshulbari/cerebrops
-  newTag: latest
+  newTag: main

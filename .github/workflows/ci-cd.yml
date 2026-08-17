@@ -34,14 +34,15 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        # Dev requirements include flake8/pytest/pytest-cov needed below
+        pip install -r requirements-dev.txt
 
     - name: Lint with flake8
       run: |
@@ -56,7 +57,9 @@ jobs:
         PYTHONPATH=. pytest tests/ -v --cov=. --cov-report=xml --cov-report=html --tb=short
 
     - name: Upload coverage reports
-      uses: codecov/codecov-action@v3
+      # Best-effort: only meaningful once a CODECOV_TOKEN is configured
+      continue-on-error: true
+      uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
 
@@ -177,10 +180,18 @@ jobs:
       with:
         args: -strict -summary -kubernetes-version 1.29.0 /github/workspace/rendered/
 
-    - name: Setup polaris
-      uses: fairwindsops/polaris/.github/actions/setup-polaris@master
-      with:
-        version: 10.2.2
+    - name: Install polaris (pinned release binary)
+      # The upstream setup-polaris action builds a stale download URL (asset
+      # is now polaris_<version>_linux_amd64.tar.gz and the release tag is
+      # v10.2.2), so its setup step silently installs nothing and the audit
+      # step fails with "polaris: command not found". Download directly.
+      run: |
+        mkdir -p "$RUNNER_TEMP/polaris"
+        curl -fsSL -o "$RUNNER_TEMP/polaris.tar.gz" \
+          https://github.com/FairwindsOps/polaris/releases/download/v10.2.2/polaris_10.2.2_linux_amd64.tar.gz
+        tar -xzf "$RUNNER_TEMP/polaris.tar.gz" -C "$RUNNER_TEMP/polaris"
+        chmod +x "$RUNNER_TEMP/polaris/polaris"
+        echo "$RUNNER_TEMP/polaris" >> "$GITHUB_PATH"
 
     - name: Polaris security audit (fail on danger issues or score < 90)
       run: |
@@ -238,8 +249,9 @@ jobs:
         IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.digest }}"
         # Replace only the CerebrOps image tag (busybox etc. stay untouched).
         # The match excludes the leading "image: " so the line stays valid YAML.
-        sed -i "s|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest|${IMAGE}|g" k8s/base/deployment.yaml
-        sed -i "s|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest|${IMAGE}|g" k8s/base/cronjobs.yaml
+        sed -i "s|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main|${IMAGE}|g" k8s/base/deployment.yaml
+        sed -i "s|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main|${IMAGE}|g" k8s/base/cronjobs.yaml
+        sed -i "s|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main|${IMAGE}|g" k8s/base/backup.yaml
 
     - name: Ensure session secret key exists (create once, never rotate)
       run: |

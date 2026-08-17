@@ -48,4 +48,4 @@ patches:
       value: 2
 images:
 - name: ghcr.io/anshulbari/cerebrops
-  newTag: latest
+  newTag: main

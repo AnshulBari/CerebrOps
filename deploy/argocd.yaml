@@ -15,7 +15,7 @@ spec:
     path: k8s
     kustomize:
       images:
-      - ghcr.io/anshulbari/cerebrops:latest
+      - ghcr.io/anshulbari/cerebrops:main
   destination:
     server: https://kubernetes.default.svc
     namespace: cerebrops
