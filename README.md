@@ -1,22 +1,22 @@
-# 🧠 CerebrOps — AI-Powered CI/CD Monitoring
+#  CerebrOps — AI-Powered CI/CD Monitoring
 
 [![CI/CD Pipeline](https://github.com/AnshulBari/CerebrOps/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/AnshulBari/CerebrOps/actions/workflows/ci-cd.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 CerebrOps watches your CI/CD pipelines and application health, learns what "normal" looks like, and tells you — with context — when something is wrong. It combines real telemetry, two AI detectors, structured logging, and a polished web product into one self-hosted system.
 
-> 🧭 **New here?** Read **[PROJECT_EXPLAINED.md](PROJECT_EXPLAINED.md)** — a beginner-friendly tour of the problem, our approach, the architecture, every module, the workflow, and the tech stack. The roadmap lives in **[ROADMAP.md](ROADMAP.md)**.
+>  **New here?** Read **[PROJECT_EXPLAINED.md](PROJECT_EXPLAINED.md)** — a beginner-friendly tour of the problem, our approach, the architecture, every module, the workflow, and the tech stack. The roadmap lives in **[ROADMAP.md](ROADMAP.md)**.
 
-## ✨ Highlights
+##  Highlights
 
-- **🤖 Two AI detectors** — an Isolation Forest model (v1) plus a seasonal forecast-residual detector (v2) that only activates after enough real history exists. Both refuse to guess when data is insufficient.
-- **📊 Honest telemetry** — every metric, alert, and pipeline event lands in a SQLite store. No fabricated data anywhere; the dashboard starts from real webhooks.
-- **📈 Alerts with a story** — anomalies include features, severity, correlated deploys, and optional LLM-generated summaries (opt-in), delivered to Slack.
-- **🪟 Premium web product** — a cinematic landing page (video hero), a real-time dashboard with auth (login/register/logout, lockout, password reset), and an interactive Three.js "experience" page.
-- **🔭 Fully observable** — structured JSON logs shipped to ELK, Prometheus `/metrics-prom` endpoint, provisioned Grafana dashboards, and SLO rules.
-- **🔒 Production-shaped** — session auth, API-key-gated webhooks, OIDC short-lived cloud credentials, GitOps via ArgoCD, and Kubernetes manifests validated by kubeconform + polaris in CI.
+- ** Two AI detectors** — an Isolation Forest model (v1) plus a seasonal forecast-residual detector (v2) that only activates after enough real history exists. Both refuse to guess when data is insufficient.
+- ** Honest telemetry** — every metric, alert, and pipeline event lands in a SQLite store. No fabricated data anywhere; the dashboard starts from real webhooks.
+- ** Alerts with a story** — anomalies include features, severity, correlated deploys, and optional LLM-generated summaries (opt-in), delivered to Slack.
+- ** Premium web product** — a cinematic landing page (video hero), a real-time dashboard with auth (login/register/logout, lockout, password reset), and an interactive Three.js "experience" page.
+- ** Fully observable** — structured JSON logs shipped to ELK, Prometheus `/metrics-prom` endpoint, provisioned Grafana dashboards, and SLO rules.
+- ** Production-shaped** — session auth, API-key-gated webhooks, OIDC short-lived cloud credentials, GitOps via ArgoCD, and Kubernetes manifests validated by kubeconform + polaris in CI.
 
-## 🏗️ Architecture
+##  Architecture
 
 ```mermaid
 flowchart TB
@@ -57,7 +57,7 @@ flowchart TB
 | LLM summaries | `llm_summary.py` | Opt-in narrative summaries (mock mode for offline testing) |
 | Logging | `logging_config.py` | Structured JSON logs with rotation |
 
-## 🚀 Quick Start
+##  Quick Start
 
 **Prerequisites:** Python 3.11+, Docker (optional, for ELK/Grafana), kubectl (optional, for K8s).
 
@@ -100,7 +100,7 @@ python monitor.py --interval 60           # continuous monitoring
 python monitor.py --single-check --app-url http://localhost:5000 --slack-webhook https://hooks.slack.com/...
 ```
 
-## ⚙️ Configuration
+##  Configuration
 
 All settings are environment variables (see `.env.example`). Key ones:
 
@@ -121,7 +121,7 @@ All settings are environment variables (see `.env.example`). Key ones:
 | `LLM_API_URL` / `LLM_API_KEY` / `LLM_MODEL` | Opt-in LLM summaries | disabled |
 | `LLM_MODE=mock` | Deterministic offline summaries | unset |
 
-## 🧠 AI Anomaly Detection
+##  AI Anomaly Detection
 
 Two detectors run against real windowed features (rolling mean/std/slope over 15m/1h/24h):
 
@@ -137,7 +137,7 @@ Two detectors run against real windowed features (rolling mean/std/slope over 15
 - **Verify end-to-end**: `scripts/verify-observability.sh` validates compose configs, and (with the Docker daemon up) boots the stack and asserts a tagged request's log line appears in Elasticsearch within 30s.
 - **Runbooks** in `docs/runbooks/` cover incidents, restores, SLO burn, and model evaluation.
 
-## 🔌 API
+##  API
 
 `/api/v1/*` endpoints are key-gated when `CEREBROPS_API_KEY` is set (`X-API-Key` header or `?api_key=`):
 
@@ -156,7 +156,7 @@ Two detectors run against real windowed features (rolling mean/std/slope over 15
 
 See **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** for the full reference.
 
-## 🧪 Testing
+##  Testing
 
 ```bash
 pytest tests/ -v --cov=. --cov-report=html   # full suite (currently 135 tests)
@@ -165,7 +165,7 @@ flake8 . --count --select=E9,F63,F7,F82      # strict lint gate (as run in CI)
 
 The suite covers the store, both detectors, root cause, alerts, LLM summaries, backup/restore, model evaluation, auth flows (lockout, password reset, enumeration protection), and the web UI. CI also runs k6 performance tests and Trivy/CodeQL security scans.
 
-## 🚀 CI/CD Pipeline
+##  CI/CD Pipeline
 
 `.github/workflows/ci-cd.yml` — six jobs:
 
@@ -180,7 +180,7 @@ The suite covers the store, both detectors, root cause, alerts, LLM summaries, b
 
 `deploy/` holds ArgoCD Applications for GitOps promotion of `k8s/` (base + dev/staging overlays). See **[GITHUB_SETUP.md](GITHUB_SETUP.md)** for OIDC/secrets setup.
 
-## 📦 Deployment
+##  Deployment
 
 ```bash
 # Docker
@@ -198,7 +198,7 @@ IMAGE_TAG=v1.2.3 NAMESPACE=cerebrops ./scripts/deploy.sh
 
 The manifests are pinned to the real `main` image tag; CI rewrites it to the build **digest** at deploy time for reproducibility. See **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** and **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)**.
 
-## 🗂️ Project Structure
+##  Project Structure
 
 ```
 CerebrOps/
@@ -223,7 +223,7 @@ CerebrOps/
 └── docs/runbooks/          # incident, restore, SLO, model-evaluation runbooks
 ```
 
-## 📚 Documentation
+##  Documentation
 
 | Document | What it covers |
 |---|---|
@@ -238,13 +238,13 @@ CerebrOps/
 | [SETUP_COMPLETE.md](SETUP_COMPLETE.md) | Post-setup verification checklist |
 | [docs/runbooks/](docs/runbooks/) | Incident response, restore drill, SLO burn, model evaluation |
 
-## 🗺️ Status
+##  Status
 
 Phases 0–5 of the roadmap are implemented: real-data telemetry store, ELK + Grafana observability, both AI detectors with drift retraining, the product dashboard + API + auth, CI/CD & K8s hardening (OIDC, kustomize, kubeconform/polaris gates, HPA/PDB/NetworkPolicy), and the ops layer (runbooks, SLOs, backup/restore drills, LLM summaries).
 
 **What remains is what only production can provide:** ≥2 weeks of real labeled traffic for the precision/recall number, and the first live-cluster `kubectl apply` — the manifests are schema- and policy-validated, but a real cluster is the final proof.
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repo, create a feature branch (`git checkout -b feature/...`).
 2. Make changes **with tests** — the suite must stay green (`pytest tests/`), flake8 strict pass must be clean, and K8s changes should render + pass `kubeconform`/`polaris`.
