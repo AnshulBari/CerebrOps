@@ -69,7 +69,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
 After successful setup:
-- 🌐 **CerebrOps Dashboard**: http://localhost:5000
+- 🌐 **CerebrOps Dashboard**: http://localhost:5000/dashboard
 - 📊 **Kibana Dashboard**: http://localhost:5601
 - 🔍 **Elasticsearch**: http://localhost:9200
 
@@ -238,9 +238,9 @@ chmod +x scripts/deploy.sh
 **Option B: Manual Deployment**
 ```bash
 # Apply Kubernetes manifests
-kubectl apply -f k8s/secrets.yaml -n cerebrops
-kubectl apply -f k8s/deployment.yaml -n cerebrops
-kubectl apply -f k8s/cronjobs.yaml -n cerebrops
+kubectl apply -f k8s/base/secrets.yaml -n cerebrops
+kubectl apply -f k8s/base/deployment.yaml -n cerebrops
+kubectl apply -f k8s/base/cronjobs.yaml -n cerebrops
 
 # Wait for deployment
 kubectl rollout status deployment/cerebrops-app -n cerebrops

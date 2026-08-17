@@ -1,0 +1,125 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cerebrops-anomaly-detection
+  namespace: cerebrops
+spec:
+  schedule: "*/5 * * * *"  # Run every 5 minutes
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        spec:
+          serviceAccountName: cerebrops-deployer
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+          - name: anomaly-detector
+            image: ghcr.io/anshulbari/cerebrops:latest
+            command:
+            - python
+            - monitor.py
+            - --single-check
+            - --app-url
+            - "http://cerebrops-service.cerebrops.svc.cluster.local"
+            env:
+            - name: CEREBROPS_DB_PATH
+              value: "/app/data/cerebrops.db"
+            - name: CEREBROPS_MODEL_DIR
+              value: "/app/models"
+            - name: SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: cerebrops-secrets
+                  key: slack-webhook-url
+                  optional: true
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                memory: "128Mi"
+                cpu: "100m"
+              limits:
+                memory: "512Mi"
+                cpu: "500m"
+            volumeMounts:
+            - name: data
+              mountPath: /app/data
+            - name: models
+              mountPath: /app/models
+              subPath: models
+            - name: logs
+              mountPath: /app/logs
+          volumes:
+          - name: data
+            persistentVolumeClaim:
+              claimName: cerebrops-data-pvc
+          - name: models
+            persistentVolumeClaim:
+              claimName: cerebrops-data-pvc
+          # models mount uses subPath on the same data PVC so the DB and
+          # model files don't collide in the shared store.
+          - name: logs
+            persistentVolumeClaim:
+              claimName: cerebrops-logs-pvc
+          restartPolicy: OnFailure
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cerebrops-log-cleanup
+  namespace: cerebrops
+spec:
+  schedule: "0 2 * * *"  # Run daily at 2 AM
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        spec:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+          - name: log-cleanup
+            image: busybox:1.35
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Cleaning up old logs..."
+              find /logs -type f -name "*.log" -mtime +7 -delete
+              echo "Log cleanup completed"
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                memory: "32Mi"
+                cpu: "50m"
+              limits:
+                memory: "128Mi"
+                cpu: "200m"
+            volumeMounts:
+            - name: logs
+              mountPath: /logs
+          volumes:
+          - name: logs
+            persistentVolumeClaim:
+              claimName: cerebrops-logs-pvc
+          restartPolicy: OnFailure

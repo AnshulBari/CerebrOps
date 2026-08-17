@@ -12,11 +12,11 @@ Your CI/CD pipeline has been **fully configured and is production-ready**!
    - ✅ Added smoke tests execution (line 147-149)
    - ✅ Fixed namespace to `cerebrops`
 
-2. **`k8s/deployment.yaml`**
+2. **`k8s/base/deployment.yaml`**
    - ✅ Updated image to `ghcr.io/anshulbari/cerebrops:latest`
    - ✅ Configured for GitHub Container Registry
 
-3. **`k8s/cronjobs.yaml`**
+3. **`k8s/base/cronjobs.yaml`**
    - ✅ Updated image to `ghcr.io/anshulbari/cerebrops:latest`
    - ✅ Fixed service URL to `cerebrops-service.cerebrops.svc.cluster.local`
 
@@ -53,7 +53,7 @@ Your CI/CD pipeline has been **fully configured and is production-ready**!
    - Token generation helper
    - Git commit automation
 
-9. **`k8s/persistent-volume.yaml`** (New)
+9. **`k8s/base/persistent-volume.yaml`** (New)
    - PersistentVolumeClaim for logs (5Gi)
    - PersistentVolumeClaim for data (10Gi)
    - Fixes cronjob storage issue

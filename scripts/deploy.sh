@@ -3,17 +3,9 @@
 
 set -e
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-print_status() { echo -e "${BLUE}[INFO]${NC} $1"; }
-print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-print_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
-print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+# Source shared utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/common.sh"
 
 NAMESPACE="cerebrops"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
@@ -57,10 +49,26 @@ create_secrets() {
         print_warning "Update the secret later with: kubectl create secret generic cerebrops-secrets --from-literal=slack-webhook-url='YOUR_URL' -n $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -"
         SLACK_WEBHOOK_URL=""
     fi
-    
-    # Create secret
+
+    # CEREBROPS_SECRET_KEY: generate once, keep it across re-deploys so
+    # dashboard sessions survive (kubectl apply below never overwrites the
+    # existing key because the flag is omitted when it already exists).
+    SECRET_KEY=""
+    if kubectl get secret cerebrops-secrets -n $NAMESPACE -o jsonpath='{.data.secret-key}' 2>/dev/null | grep -q .; then
+        print_status "CEREBROPS_SECRET_KEY already exists - keeping it (sessions stay valid)"
+    else
+        print_status "Generating CEREBROPS_SECRET_KEY..."
+        SECRET_KEY=$(openssl rand -hex 32 2>/dev/null || python -c "import secrets; print(secrets.token_hex(32))")
+    fi
+
+    ARGS=(--from-literal=slack-webhook-url="$SLACK_WEBHOOK_URL")
+    if [ -n "$SECRET_KEY" ]; then
+        ARGS+=(--from-literal=secret-key="$SECRET_KEY")
+    fi
+
+    # Create/update secret (kubectl apply preserves keys omitted from the patch)
     kubectl create secret generic cerebrops-secrets \
-        --from-literal=slack-webhook-url="$SLACK_WEBHOOK_URL" \
+        "${ARGS[@]}" \
         --namespace=$NAMESPACE \
         --dry-run=client -o yaml | kubectl apply -f -
     
@@ -72,12 +80,21 @@ deploy_app() {
     print_status "Deploying CerebrOps application..."
     
     # Update image tag in deployment
-    sed "s|cerebrops:latest|cerebrops:$IMAGE_TAG|g" k8s/deployment.yaml > /tmp/deployment.yaml
+    sed "s|cerebrops:latest|cerebrops:$IMAGE_TAG|g" k8s/base/deployment.yaml > /tmp/deployment.yaml
     
-    # Apply manifests
-    kubectl apply -f k8s/secrets.yaml -n $NAMESPACE
+    # Apply manifests (core app + hardening: HPA, PDB, NetworkPolicy,
+    # RBAC, persistent volumes, backup). cert-manager/ExternalSecrets are
+    # applied separately once those operators are installed (see
+    # k8s/base/kustomization.yaml).
+    kubectl apply -f k8s/base/secrets.yaml -n $NAMESPACE
     kubectl apply -f /tmp/deployment.yaml -n $NAMESPACE
-    kubectl apply -f k8s/cronjobs.yaml -n $NAMESPACE
+    kubectl apply -f k8s/base/cronjobs.yaml -n $NAMESPACE
+    kubectl apply -f k8s/base/backup.yaml -n $NAMESPACE
+    kubectl apply -f k8s/base/hpa.yaml -n $NAMESPACE
+    kubectl apply -f k8s/base/pdb.yaml -n $NAMESPACE
+    kubectl apply -f k8s/base/network-policy.yaml -n $NAMESPACE
+    kubectl apply -f k8s/base/persistent-volume.yaml -n $NAMESPACE
+    kubectl apply -f k8s/base/rbac.yaml -n $NAMESPACE
     
     print_success "Application manifests applied"
 }
