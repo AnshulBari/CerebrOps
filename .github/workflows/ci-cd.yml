@@ -59,7 +59,7 @@ jobs:
     - name: Upload coverage reports
       # Best-effort: only meaningful once a CODECOV_TOKEN is configured
       continue-on-error: true
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v7
       with:
         file: ./coverage.xml
 
