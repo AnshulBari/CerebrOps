@@ -1,0 +1,107 @@
+# CerebrOps SLO + operational alerting rules.
+#
+# SLOs (documented in docs/runbooks/README.md):
+#   - Availability:   99.9% over 30d  (error budget = 0.1% of requests)
+#   - Latency:        p95 < 500ms
+#   - Error rate:     < 1% of requests (operational guardrail)
+#
+# Burn-rate alerts follow the Google SRE multi-window pattern: the fast
+# alert (page) fires when the 30d budget would burn out in <2h; the slow
+# alert (ticket) when it would burn out in <10h.
+groups:
+- name: cerebrops-slo
+  interval: 1m
+  rules:
+  # Remaining error budget for the 30d rolling window (1.0 = full budget).
+  - record: cerebrops:slo:error_budget_remaining:30d
+    expr: |
+      1 - (sum(rate(cerebrops_http_requests_total{status=~"5.."}[30d]))
+           / clamp_min(sum(rate(cerebrops_http_requests_total[30d])), 1)
+           / 0.001)
+
+  - alert: CerebrOpsSLOFastBurn
+    expr: |
+      (sum(rate(cerebrops_http_requests_total{status=~"5.."}[1h]))
+       / clamp_min(sum(rate(cerebrops_http_requests_total[1h])), 1)
+       / 0.001 > 14.4)
+      and
+      (sum(rate(cerebrops_http_requests_total{status=~"5.."}[5m]))
+       / clamp_min(sum(rate(cerebrops_http_requests_total[5m])), 1)
+       / 0.001 > 14.4)
+    for: 2m
+    labels:
+      severity: critical
+      slo: availability
+    annotations:
+      summary: "CerebrOps error budget burning fast (would exhaust 30d budget in <2h)"
+      description: "Error ratio over 5m is {{ $value | humanizePercentage }} of the 0.1% budget target. Follow docs/runbooks/slo-burn.md."
+
+  - alert: CerebrOpsSLOSlowBurn
+    expr: |
+      (sum(rate(cerebrops_http_requests_total{status=~"5.."}[6h]))
+       / clamp_min(sum(rate(cerebrops_http_requests_total[6h])), 1)
+       / 0.001 > 3)
+      and
+      (sum(rate(cerebrops_http_requests_total{status=~"5.."}[30m]))
+       / clamp_min(sum(rate(cerebrops_http_requests_total[30m])), 1)
+       / 0.001 > 3)
+    for: 15m
+    labels:
+      severity: warning
+      slo: availability
+    annotations:
+      summary: "CerebrOps error budget burning slowly (would exhaust 30d budget in <10h)"
+      description: "Error ratio over 30m is {{ $value | humanizePercentage }} of the 0.1% budget target. Follow docs/runbooks/slo-burn.md."
+
+- name: cerebrops-operational
+  interval: 1m
+  rules:
+  - alert: CerebrOpsDown
+    expr: up{job="cerebrops"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "CerebrOps is unreachable"
+      description: "Prometheus cannot scrape {{ $labels.instance }} for 1 minute. Follow docs/runbooks/service-down.md."
+
+  - alert: CerebrOpsHighErrorRate
+    expr: |
+      sum(rate(cerebrops_http_requests_total{status=~"5.."}[5m]))
+      / clamp_min(sum(rate(cerebrops_http_requests_total[5m])), 1) > 0.05
+    for: 5m
+    labels:
+      severity: high
+    annotations:
+      summary: "CerebrOps error rate above 5%"
+      description: "5xx share over 5m is {{ $value | humanizePercentage }}. Check /api/v1/anomalies and runbooks."
+
+  - alert: CerebrOpsHighLatencyP95
+    expr: |
+      histogram_quantile(0.95,
+        sum(rate(cerebrops_http_request_duration_seconds_bucket[5m])) by (le)
+      ) > 0.5
+    for: 10m
+    labels:
+      severity: high
+    annotations:
+      summary: "CerebrOps p95 latency above 500ms"
+      description: "p95 response time over 10m is {{ $value }}s. Investigate slow endpoints in Grafana (cerebrops-http dashboard)."
+
+  - alert: CerebrOpsHighCPU
+    expr: cerebrops_cpu_usage_percent > 90
+    for: 15m
+    labels:
+      severity: warning
+    annotations:
+      summary: "CerebrOps host CPU above 90%"
+      description: "CPU usage is {{ $value }}%. Check HPA behavior and pod resource usage."
+
+  - alert: CerebrOpsDiskPressure
+    expr: cerebrops_disk_usage_percent > 85
+    for: 10m
+    labels:
+      severity: critical
+    annotations:
+      summary: "CerebrOps host disk above 85%"
+      description: "Disk usage is {{ $value }}%. The SQLite store and logs live on this disk; act before it fills."

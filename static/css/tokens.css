@@ -1,0 +1,200 @@
+/* ============================================================
+   CerebrOps design tokens
+   Cinematic, minimal, technical. One source of truth for the
+   visual language across the landing page and the app shell.
+   ============================================================ */
+
+:root {
+  /* ---- typography ---- */
+  /* Space Grotesk — technical grotesque with personality; pairs with JetBrains Mono.
+     Instrument Serif italic — editorial-cinematic accent for signature words. */
+  --font-ui: "Space Grotesk", "Inter", "SF Pro Display", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", ui-monospace, "Cascadia Code", Menlo, monospace;
+
+  --text-xs: 11px;
+  --text-sm: 12.5px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 19px;
+  --text-2xl: 24px;
+  --text-3xl: 32px;
+  --text-4xl: 44px;
+  --text-5xl: 60px;
+
+  --tracking-tight: -0.025em;
+  --tracking-mono: 0.01em;
+
+  /* ---- spacing scale ---- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --sp-9: 96px;
+
+  /* ---- radii ---- */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --r-full: 999px;
+
+  /* ---- layout ---- */
+  --sidebar-w: 240px;
+  --sidebar-w-collapsed: 64px;
+  --topbar-h: 52px;
+  --content-max: 1280px;
+  --view-pad-x: clamp(16px, 3vw, 40px);
+
+  /* ---- motion ---- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 320ms;
+  --dur-slower: 520ms;
+
+  /* ---- z-index ---- */
+  --z-sidebar: 40;
+  --z-topbar: 50;
+  --z-drawer: 60;
+  --z-palette: 90;
+  --z-toast: 100;
+}
+
+/* ============================================================
+   Dark (default) theme — dimensional near-black, restrained color
+   ============================================================ */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* canvas */
+  --bg: #070709;
+  --bg-elevated: #0a0a0d;
+  --surface: #0e0e12;
+  --surface-2: #131318;
+  --surface-3: #191920;
+  --surface-hover: #16161c;
+
+  /* hairline borders */
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.13);
+  --border-faint: rgba(255, 255, 255, 0.04);
+
+  /* text */
+  --ink: #f2f2f4;
+  --ink-secondary: #a3a3ad;
+  --ink-muted: #6e6e78;
+  --ink-faint: #4c4c55;
+
+  /* brand accent — restrained electric blue */
+  --accent: #4d8dff;
+  --accent-strong: #7cabff;
+  --accent-soft: rgba(77, 141, 255, 0.12);
+  --accent-border: rgba(77, 141, 255, 0.38);
+  --accent-ink: #060709;
+
+  /* semantic status */
+  --success: #43c463;
+  --success-soft: rgba(67, 196, 99, 0.12);
+  --fail: #f2554c;
+  --fail-soft: rgba(242, 85, 76, 0.12);
+  --warn: #d9a43c;
+  --warn-soft: rgba(217, 164, 60, 0.12);
+  --run: #58a6ff;
+  --run-soft: rgba(88, 166, 255, 0.12);
+  --muted: #6e6e78;
+  --muted-soft: rgba(139, 145, 158, 0.1);
+
+  /* shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 28px 80px rgba(0, 0, 0, 0.6), 0 6px 16px rgba(0, 0, 0, 0.45);
+
+  /* grids & glows */
+  --grid-line: rgba(255, 255, 255, 0.035);
+  --glow-accent: rgba(77, 141, 255, 0.12);
+  --glow-success: rgba(67, 196, 99, 0.08);
+  --glow-warm: rgba(255, 255, 255, 0.04);
+
+  /* hero (pipeline visual) */
+  --hero-track: rgba(255, 255, 255, 0.09);
+  --hero-track-done: rgba(67, 196, 99, 0.55);
+  --hero-track-fail: rgba(242, 85, 76, 0.55);
+  --hero-track-run: rgba(88, 166, 255, 0.6);
+
+  /* log colors */
+  --log-ts: #5a5a64;
+  --log-info: #a3a3ad;
+  --log-warn: #d9a43c;
+  --log-error: #f2554c;
+  --log-ok: #43c463;
+  --log-highlight: rgba(217, 164, 60, 0.2);
+}
+
+/* ============================================================
+   Light theme
+   ============================================================ */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f6f6f7;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f2f2f4;
+  --surface-3: #e9e9ec;
+  --surface-hover: #eef0f3;
+
+  --border: rgba(16, 18, 24, 0.09);
+  --border-strong: rgba(16, 18, 24, 0.16);
+  --border-faint: rgba(16, 18, 24, 0.05);
+
+  --ink: #16181d;
+  --ink-secondary: #4d525c;
+  --ink-muted: #878c96;
+  --ink-faint: #a8acb4;
+
+  --accent: #2b6fe8;
+  --accent-strong: #1f5fd1;
+  --accent-soft: rgba(43, 111, 232, 0.1);
+  --accent-border: rgba(43, 111, 232, 0.35);
+  --accent-ink: #ffffff;
+
+  --success: #1a7f37;
+  --success-soft: rgba(26, 127, 55, 0.1);
+  --fail: #cf222e;
+  --fail-soft: rgba(207, 34, 46, 0.09);
+  --warn: #9a6700;
+  --warn-soft: rgba(154, 103, 0, 0.1);
+  --run: #0969da;
+  --run-soft: rgba(9, 105, 218, 0.09);
+  --muted: #878c96;
+  --muted-soft: rgba(109, 115, 128, 0.1);
+
+  --shadow-sm: 0 1px 2px rgba(16, 18, 24, 0.06);
+  --shadow-md: 0 8px 24px rgba(16, 18, 24, 0.1), 0 2px 6px rgba(16, 18, 24, 0.06);
+  --shadow-lg: 0 24px 64px rgba(16, 18, 24, 0.16), 0 4px 12px rgba(16, 18, 24, 0.08);
+
+  --grid-line: rgba(16, 18, 24, 0.05);
+  --glow-accent: rgba(43, 111, 232, 0.1);
+  --glow-success: rgba(26, 127, 55, 0.08);
+  --glow-warm: rgba(16, 18, 24, 0.03);
+
+  --hero-track: rgba(16, 18, 24, 0.1);
+  --hero-track-done: rgba(26, 127, 55, 0.5);
+  --hero-track-fail: rgba(207, 34, 46, 0.5);
+  --hero-track-run: rgba(9, 105, 218, 0.55);
+
+  --log-ts: #9aa0aa;
+  --log-info: #4d525c;
+  --log-warn: #9a6700;
+  --log-error: #cf222e;
+  --log-ok: #1a7f37;
+  --log-highlight: rgba(154, 103, 0, 0.18);
+}
