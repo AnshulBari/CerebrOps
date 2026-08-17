@@ -3,7 +3,7 @@ gunicorn==23.0.0
 requests==2.32.3
 numpy==2.2.5
 scikit-learn==1.6.1
-joblib==1.5.2
+joblib==1.5.3
 pandas==2.2.3
 python-dotenv==1.1.0
 psutil==7.2.2
