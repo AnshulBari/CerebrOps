@@ -40,7 +40,7 @@ Use this checklist to ensure your CerebrOps CI/CD pipeline is production-ready.
     -n cerebrops
   ```
   - [ ] cerebrops-secrets created in cluster
-  - [ ] Secret values are base64 encoded in k8s/secrets.yaml
+  - [ ] Secret values are base64 encoded in k8s/base/secrets.yaml
 
 - [ ] **Service Account Created**
   ```bash
@@ -60,7 +60,7 @@ Use this checklist to ensure your CerebrOps CI/CD pipeline is production-ready.
   - [ ] `.env` is in `.gitignore` (security)
 
 - [ ] **Kubernetes Manifests Updated**
-  - [ ] Image registry updated in `k8s/deployment.yaml`
+  - [ ] Image registry updated in `k8s/base/deployment.yaml`
   - [ ] Namespace is correct in all manifests
   - [ ] Resource limits are appropriate for your cluster
   - [ ] Secrets reference is correct
@@ -109,21 +109,21 @@ Use this checklist to ensure your CerebrOps CI/CD pipeline is production-ready.
 
 - [ ] **PersistentVolumeClaims Created**
   ```bash
-  kubectl apply -f k8s/persistent-volume.yaml -n cerebrops
+  kubectl apply -f k8s/base/persistent-volume.yaml -n cerebrops
   ```
   - [ ] PVCs created successfully
   - [ ] Storage is available
 
 - [ ] **Secrets Applied**
   ```bash
-  kubectl apply -f k8s/secrets.yaml -n cerebrops
+  kubectl apply -f k8s/base/secrets.yaml -n cerebrops
   ```
   - [ ] Secrets exist in cluster
   - [ ] No sensitive data in Git
 
 - [ ] **Application Deployed**
   ```bash
-  kubectl apply -f k8s/deployment.yaml -n cerebrops
+  kubectl apply -f k8s/base/deployment.yaml -n cerebrops
   ```
   - [ ] Deployment created
   - [ ] Pods are running
@@ -131,7 +131,7 @@ Use this checklist to ensure your CerebrOps CI/CD pipeline is production-ready.
 
 - [ ] **CronJobs Configured**
   ```bash
-  kubectl apply -f k8s/cronjobs.yaml -n cerebrops
+  kubectl apply -f k8s/base/cronjobs.yaml -n cerebrops
   ```
   - [ ] Anomaly detection job created
   - [ ] Log cleanup job created

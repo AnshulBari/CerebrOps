@@ -1,0 +1,66 @@
+# Default-deny egress/ingress for the web tier. The app talks to:
+#   - nothing on the data plane besides DNS (egress to kube-dns:53)
+#   - the Prometheus / ELK namespaces are outbound only via HTTP/HTTPS;
+#     uncomment and adjust if you scrape in-cluster.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cerebrops-default-deny
+  namespace: cerebrops
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress", "Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cerebrops-web-allow-ingress
+  namespace: cerebrops
+spec:
+  podSelector:
+    matchLabels:
+      app: cerebrops
+      component: web
+  policyTypes: ["Ingress"]
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 5000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cerebrops-web-allow-egress
+  namespace: cerebrops
+spec:
+  podSelector:
+    matchLabels:
+      app: cerebrops
+      component: web
+  policyTypes: ["Egress"]
+  egress:
+  # DNS resolution
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Outbound HTTPS (Slack webhook, GHCR pulls handled by kubelet, etc.)
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+    ports:
+    - protocol: TCP
+      port: 443

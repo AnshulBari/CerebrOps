@@ -1,17 +1,25 @@
 # CerebrOps Development Environment
-version: '3.8'
-
+#
+# One stack: Flask app + Elasticsearch + Kibana + Filebeat (ships app stdout
+# JSON logs to ES) + Prometheus + Grafana. Security is disabled on ES/Kibana
+# for local development (see elk/elasticsearch/config/elasticsearch.yml).
 services:
   app:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     container_name: cerebrops-dev
     ports:
       - "5000:5000"
     volumes:
-      - ./:/app
+      - ./app.py:/app/app.py
+      - ./alerts.py:/app/alerts.py
+      - ./anomaly_detector.py:/app/anomaly_detector.py
+      - ./monitor.py:/app/monitor.py
+      - ./logging_config.py:/app/logging_config.py
+      - ./metrics_store.py:/app/metrics_store.py
       - ./logs:/app/logs
+      - ./data:/app/data
     environment:
       - FLASK_ENV=development
       - FLASK_DEBUG=1
@@ -43,6 +51,11 @@ services:
       - "9200:9200"
     networks:
       - cerebrops-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.9.0
@@ -52,9 +65,52 @@ services:
     environment:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
     networks:
       - cerebrops-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.9.0
+    container_name: cerebrops-filebeat-dev
+    user: root
+    volumes:
+      - ./elk/filebeat/config/filebeat.dev.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    environment:
+      ELASTICSEARCH_HOST: elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - cerebrops-network
+
+  kibana-setup:
+    image: curlimages/curl:8.5.0
+    container_name: cerebrops-kibana-setup
+    depends_on:
+      kibana:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "Waiting for Kibana...";
+        until curl -sf http://kibana:5601/api/status >/dev/null 2>&1; do sleep 3; done;
+        echo "Creating data view cerebrops-logs-* ...";
+        curl -sf -X POST http://kibana:5601/api/data_views/data_view \
+          -H 'Content-Type: application/json' -H 'kbn-xsrf: true' \
+          -d '{"data_view":{"title":"cerebrops-logs-*","name":"cerebrops-logs","timeFieldName":"@timestamp"}}' \
+          >/dev/null && echo "Data view created" || echo "Data view creation skipped (may already exist)";
+        echo "Kibana setup complete."
+    networks:
+      - cerebrops-network
+    restart: "no"
 
   prometheus:
     image: prom/prometheus:latest
@@ -63,6 +119,7 @@ services:
       - "9090:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus-rules.yml:/etc/prometheus/prometheus-rules.yml:ro
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -77,9 +134,11 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     networks:
       - cerebrops-network
 
