@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cerebrops-app
+  namespace: cerebrops
   labels:
     app: cerebrops
     component: web
@@ -17,6 +18,13 @@ spec:
         app: cerebrops
         component: web
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: cerebrops-web
         image: ghcr.io/anshulbari/cerebrops:latest
@@ -26,12 +34,22 @@ spec:
         env:
         - name: FLASK_ENV
           value: "production"
+        - name: CEREBROPS_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cerebrops-secrets
+              key: secret-key
         - name: SLACK_WEBHOOK_URL
           valueFrom:
             secretKeyRef:
               name: cerebrops-secrets
               key: slack-webhook-url
               optional: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
         resources:
           requests:
             memory: "256Mi"
@@ -54,9 +72,15 @@ spec:
         volumeMounts:
         - name: logs
           mountPath: /app/logs
+        - name: data
+          mountPath: /app/data
       volumes:
       - name: logs
-        emptyDir: {}
+        persistentVolumeClaim:
+          claimName: cerebrops-logs-pvc
+      - name: data
+        persistentVolumeClaim:
+          claimName: cerebrops-data-pvc
       restartPolicy: Always
 
 ---
@@ -64,6 +88,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: cerebrops-service
+  namespace: cerebrops
   labels:
     app: cerebrops
     component: web
@@ -79,15 +104,24 @@ spec:
   type: ClusterIP
 
 ---
+# NOTE: replace "cerebrops.example.com" with your real domain. cert-manager
+# must be installed and the ClusterIssuer in k8s/cert-manager.yaml applied
+# before TLS will issue.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: cerebrops-ingress
+  namespace: cerebrops
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
+  tls:
+  - hosts:
+    - cerebrops.example.com
+    secretName: cerebrops-tls
   rules:
-  - host: cerebrops.local
+  - host: cerebrops.example.com
     http:
       paths:
       - path: /

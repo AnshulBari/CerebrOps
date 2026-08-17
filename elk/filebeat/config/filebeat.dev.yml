@@ -1,0 +1,32 @@
+# CerebrOps Filebeat configuration (development stack)
+#
+# The dev stack skips Logstash: Filebeat reads the app container's stdout
+# (structured JSON lines) and ships them directly to Elasticsearch.
+
+filebeat.inputs:
+- type: container
+  enabled: true
+  paths:
+    - /var/lib/docker/containers/*/*.log
+  processors:
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+      match_source: true
+
+processors:
+- add_host_metadata:
+    when.not.contains.tags: forwarded
+
+setup.template.settings:
+  index.number_of_shards: 1
+  index.number_of_replicas: 0
+
+setup.template.name: "cerebrops-logs"
+setup.template.pattern: "cerebrops-logs-*"
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  index: "cerebrops-logs-%{+yyyy.MM.dd}"
+
+logging.level: info
+logging.to_files: false
