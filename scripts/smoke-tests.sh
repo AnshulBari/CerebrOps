@@ -110,7 +110,7 @@ test_pipeline_status() {
     echo "Test 5: Pipeline Status Endpoint"
     echo "---------------------------------"
     
-    response=$(curl -s -w "\n%{http_code}" "$APP_URL/pipeline-status")
+    response=$(curl -s -w "\n%{http_code}" "$APP_URL/api/pipeline-status")
     http_code=$(echo "$response" | tail -n 1)
     body=$(echo "$response" | head -n -1)
     

@@ -96,7 +96,7 @@ if ($createServiceAccount -eq 'y' -or $createServiceAccount -eq 'Y') {
     
     kubectl create namespace cerebrops 2>$null
     kubectl create serviceaccount cerebrops-deployer -n cerebrops 2>$null
-    kubectl create clusterrolebinding cerebrops-deployer-binding --clusterrole=cluster-admin --serviceaccount=cerebrops:cerebrops-deployer 2>$null
+    kubectl apply -f k8s/base/rbac.yaml 2>$null
     
     Write-Host ""
     Write-Host "Generating token..." -ForegroundColor Yellow
@@ -173,13 +173,13 @@ if ($commitChanges -eq 'y' -or $commitChanges -eq 'Y') {
     Write-Host "Staging files..." -ForegroundColor Yellow
     
     git add .github/workflows/ci-cd.yml
-    git add k8s/deployment.yaml
-    git add k8s/cronjobs.yaml
-    git add k8s/persistent-volume.yaml
+    git add k8s/base/deployment.yaml
+    git add k8s/base/cronjobs.yaml
+    git add k8s/base/persistent-volume.yaml
     git add scripts/smoke-tests.sh
     git add GITHUB_SETUP.md
     git add DEPLOYMENT_CHECKLIST.md
-    git add .env
+    # NOTE: .env is intentionally NOT staged — it contains secrets
     
     Write-Host "Committing changes..." -ForegroundColor Yellow
     git commit -m "ci: Configure CI/CD pipeline for production deployment

@@ -1,0 +1,51 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: dev
+# Dev environment: shared base manifests, tuned down. Image digest is set by
+# the promote workflow (.github/workflows/promote.yml) or ArgoCD Image Updater.
+resources:
+- ../../base
+patches:
+- target:
+    kind: Namespace
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: dev
+- target:
+    kind: Deployment
+    name: cerebrops-app
+  patch: |-
+    - op: replace
+      path: /spec/replicas
+      value: 1
+- target:
+    kind: Ingress
+    name: cerebrops-ingress
+  patch: |-
+    - op: replace
+      path: /spec/rules/0/host
+      value: dev.cerebrops.example.com
+    - op: replace
+      path: /spec/tls/0/hosts/0
+      value: dev.cerebrops.example.com
+- target:
+    kind: CronJob
+    name: cerebrops-anomaly-detection
+  patch: |-
+    - op: replace
+      path: /spec/jobTemplate/spec/template/spec/containers/0/command/4
+      value: http://cerebrops-service.dev.svc.cluster.local
+- target:
+    kind: HorizontalPodAutoscaler
+    name: cerebrops-hpa
+  patch: |-
+    - op: replace
+      path: /spec/minReplicas
+      value: 1
+    - op: replace
+      path: /spec/maxReplicas
+      value: 2
+images:
+- name: ghcr.io/anshulbari/cerebrops
+  newTag: latest

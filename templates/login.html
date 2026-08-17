@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in — CerebrOps</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+<body class="auth">
+  <main class="auth-card">
+    <a class="auth-brand" href="/">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" width="26" height="26">
+          <rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M8 12h2.2l1.2-3 2.2 6 1.4-3H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      CerebrOps
+    </a>
+
+    <h1 class="auth-title">Welcome <span class="serif-it" style="color:var(--accent-strong)">back.</span></h1>
+    <p class="auth-sub">Your deployments have been waiting. Sign in to see what shipped.</p>
+
+    <form class="auth-form" method="post" action="{{ url_for('login', next=request.args.get('next')) }}">
+      {% if request.args.get('reset') %}
+      <div class="auth-note" role="status">Password updated — sign in with your new password.</div>
+      {% endif %}
+      {% if error %}
+      <div class="auth-error" role="alert">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4m0 4h.01"/></svg>
+        <span>{{ error }}</span>
+      </div>
+      {% endif %}
+      <div class="auth-field">
+        <label for="email">Email</label>
+        <input class="auth-input" id="email" name="email" type="email" placeholder="you@company.dev" required autocomplete="email" autofocus>
+      </div>
+      <div class="auth-field">
+        <label for="password">Password</label>
+        <input class="auth-input" id="password" name="password" type="password" placeholder="••••••••••••" required autocomplete="current-password">
+      </div>
+      <div class="auth-row">
+        <button class="auth-submit" type="submit">Sign in</button>
+        <a class="auth-forgot" href="{{ url_for('forgot_password') }}">Forgot password?</a>
+      </div>
+    </form>
+
+    <p class="auth-switch">New to CerebrOps? <a href="{{ url_for('register') }}">Create an account</a></p>
+    <p class="auth-demo">The API surface stays open — webhooks, metrics, and Prometheus never need a session.</p>
+
+    <p class="auth-foot">
+      <a href="/">← back to cerebrops</a>
+    </p>
+  </main>
+</body>
+</html>
