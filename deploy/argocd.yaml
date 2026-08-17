@@ -1,0 +1,34 @@
+# ArgoCD Application for GitOps delivery of CerebrOps.
+# Point the repoURL at your real repository; the path is the k8s/
+# kustomization so image tag updates (via kustomize edit set image or the
+# CI-driven image updater) are the only deployment trigger.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cerebrops
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/anshulbari/cerebrops.git
+    targetRevision: main
+    path: k8s
+    kustomize:
+      images:
+      - ghcr.io/anshulbari/cerebrops:latest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cerebrops
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

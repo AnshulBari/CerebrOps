@@ -2,9 +2,12 @@ cluster.name: "cerebrops-cluster"
 network.host: 0.0.0.0
 discovery.type: single-node
 
-# Security settings
+# Security is DISABLED for the local/dev stack.
+# ES 8.x requires transport TLS when security is enabled, so the previous
+# combination (xpack.security.enabled: true + transport ssl disabled) would
+# not boot. For a secured production cluster, enable security and provision
+# certificates/passwords explicitly (roadmap Phase 1 prod variant).
 xpack.security.enabled: false
-xpack.security.enrollment.enabled: false
 
 # Performance settings
 bootstrap.memory_lock: true

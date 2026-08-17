@@ -1,0 +1,75 @@
+# Git files
+.git
+.github
+.gitignore
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.pytest_cache
+htmlcov/
+.coverage.*
+coverage.xml
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+tests/
+pytest.ini
+
+# Logs (keep structure but not content)
+logs/*
+!logs/.gitkeep
+
+# Local SQLite telemetry store
+data/
+
+# Persisted ML models (joblib + model cards)
+models/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Kubernetes manifests
+k8s/
+
+# Scripts
+scripts/
+
+# ELK stack
+elk/
