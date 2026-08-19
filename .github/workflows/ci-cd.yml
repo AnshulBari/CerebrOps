@@ -130,7 +130,7 @@ jobs:
     # vector for the March 2026 trivy-action supply-chain compromise.
     # For maximum security, replace the tag with the commit SHA of 0.35.0.
     - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@0.35.0
+      uses: aquasecurity/trivy-action@v0.36.0
       with:
         image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.digest }}
         format: 'sarif'
@@ -139,7 +139,7 @@ jobs:
         ignore-unfixed: true
 
     - name: Generate SBOM (SPDX)
-      uses: aquasecurity/trivy-action@0.35.0
+      uses: aquasecurity/trivy-action@v0.36.0
       with:
         scan-type: 'fs'
         format: 'spdx-json'
