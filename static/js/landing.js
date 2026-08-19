@@ -216,95 +216,165 @@
     });
   }
 
-  /* ---------- hero pipeline cycle ---------- */
-  var hero = document.getElementById('hero-pipeline');
-  var pulse = document.getElementById('pulse');
-  var meta = document.getElementById('vis-meta');
-  var commitEl = document.getElementById('vis-commit');
-  var checkEl = document.getElementById('vis-check');
-  var liveDot = document.getElementById('vis-live-dot');
+  /* ============================================================
+     Chapter animations — scroll-driven
+     ============================================================ */
 
-  var commits = [
-    ['7d2f9a1', 'fix: backpressure on webhook ingress'],
-    ['9c41be2', 'feat: forecast-residual detection v2'],
-    ['3a08f77', 'chore: pin trivy-action to 0.35.0'],
-    ['e5d90b4', 'feat: deploy-correlated root cause'],
-  ];
-  var durations = [42, 18, 9, 26, 11];
+  /* --- Chapter 01: Pipeline scroll activation --- */
+  var pipelineViz = document.getElementById('pipeline-viz');
+  if (pipelineViz && !reduced) {
+    var pipeNodes = pipelineViz.querySelectorAll('.pipe-node');
+    var pipePulse = pipelineViz.querySelector('.pipe-pulse');
+    var pipeInfo = document.getElementById('pipe-info');
+    var pipeStageEl = document.getElementById('pipe-info-stage');
+    var pipeDetailEl = document.getElementById('pipe-info-detail');
+    var stageNames = ['COMMIT', 'BUILD', 'TEST', 'SECURITY', 'DEPLOY', 'PRODUCTION'];
+    var stageDetails = ['7d2f9a1 · main', '42s · cached', '312 passed · 98.5%', 'trivy · 0 critical', 'rolling · 2/2 ready', 'live · watching'];
+    var pipeActivated = false;
 
-  if (hero && !reduced) {
-    var stages = Array.prototype.slice.call(hero.querySelectorAll('.stage'));
-    var idx = 0;
-    var runNo = 1842;
-    var commitIdx = 0;
-
-    function stageCenter(i) {
-      var el = stages[i];
-      return el.offsetLeft + el.offsetWidth / 2;
+    if (pipeNodes.length) {
+      var pipeObs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting && !pipeActivated) {
+            pipeActivated = true;
+            activatePipeline();
+            pipeObs.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.3 });
+      pipeObs.observe(pipelineViz);
     }
 
-    function placePulse(i) {
-      pulse.style.left = stageCenter(i) + 'px';
-    }
-
-    function setStage(i, state) {
-      var el = stages[i];
-      el.classList.toggle('done', state === 'done');
-      el.classList.toggle('on', state === 'on');
-      var time = el.querySelector('[data-time]');
-      if (state === 'on' && time && time.textContent === '—') {
-        var secs = durations[i % durations.length] * (i + 1) / 6 | 0;
-        time.textContent = '0:' + String(secs).padStart(2, '0');
-      }
-      if (state === 'done') {
-        var t = el.querySelector('[data-time]');
-        if (t && t.textContent === '—') t.textContent = '0:' + String(durations[i % durations.length] | 0).padStart(2, '0');
-      }
-    }
-
-    function reset() {
-      stages.forEach(function (s) { s.classList.remove('on', 'done'); });
-      stages.forEach(function (s) {
-        var t = s.querySelector('[data-time]');
-        if (t) t.textContent = '—';
-      });
-      checkEl.style.opacity = '0';
-    }
-
-    function tick() {
-      if (idx >= stages.length) {
-        // run finished — show the green check, then start a new commit
-        checkEl.style.opacity = '1';
-        idx = 0;
+    function activatePipeline() {
+      var delay = 0;
+      pipeNodes.forEach(function (node, i) {
         setTimeout(function () {
-          reset();
-          runNo += 1;
-          commitIdx = (commitIdx + 1) % commits.length;
-          commitEl.textContent = commits[commitIdx][0] + ' · ' + commits[commitIdx][1];
-          meta.textContent = 'run-' + runNo + ' · ' + durations[0] + 's';
-          setTimeout(function () { tick(); }, 420);
-        }, 1400);
-        return;
-      }
-      var i = idx;
-      placePulse(i);
-      setStage(i, 'on');
-      var prev = i - 1;
-      if (prev >= 0) setStage(prev, 'done');
-      idx += 1;
-      setTimeout(tick, 760);
+          // deactivate previous
+          if (i > 0) {
+            pipeNodes[i - 1].classList.remove('active');
+            pipeNodes[i - 1].classList.add('done');
+          }
+          node.classList.add('active');
+          // move pulse
+          if (pipePulse) {
+            var circle = node.querySelector('circle');
+            if (circle) {
+              var ctm = circle.getCTM();
+              if (ctm) {
+                pipePulse.setAttribute('cx', ctm.e);
+                pipePulse.setAttribute('cy', ctm.f);
+                pipePulse.setAttribute('opacity', '1');
+              }
+            }
+          }
+          // update info
+          if (pipeStageEl) pipeStageEl.textContent = stageNames[i];
+          if (pipeDetailEl) pipeDetailEl.textContent = stageDetails[i];
+        }, delay);
+        delay += 400;
+      });
+      // final state
+      setTimeout(function () {
+        pipeNodes[pipeNodes.length - 1].classList.remove('active');
+        pipeNodes[pipeNodes.length - 1].classList.add('done');
+        if (pipePulse) pipePulse.setAttribute('opacity', '0');
+        if (pipeStageEl) pipeStageEl.textContent = 'COMPLETE';
+        if (pipeDetailEl) pipeDetailEl.textContent = 'RUN_1842 · healthy';
+      }, delay + 200);
+    }
+  }
+
+  /* --- Chapter 02: Detection graph animation --- */
+  var detectViz = document.getElementById('detect-viz');
+  if (detectViz && !reduced) {
+    var detectActivated = false;
+    var detectObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting && !detectActivated) {
+          detectActivated = true;
+          animateDetection();
+          detectObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    detectObs.observe(detectViz);
+
+    function animateDetection() {
+      var fill = detectViz.querySelector('.detect-fill');
+      var dot = detectViz.querySelector('.detect-anomaly-dot');
+      var line = detectViz.querySelector('.detect-anomaly-line');
+      var label = detectViz.querySelector('.detect-anomaly-label');
+      // Wait for normal path to be visible, then show anomaly
+      setTimeout(function () {
+        if (fill) { fill.style.transition = 'opacity 0.8s'; fill.style.opacity = '1'; }
+        if (dot) { dot.style.transition = 'opacity 0.5s'; dot.style.opacity = '1'; }
+        if (line) { line.style.transition = 'opacity 0.5s'; line.style.opacity = '0.6'; }
+        if (label) { label.style.transition = 'opacity 0.5s'; label.style.opacity = '1'; }
+      }, 600);
+    }
+  }
+
+  /* --- Chapter 03: Trace tree animation --- */
+  var traceViz = document.getElementById('trace-viz');
+  if (traceViz && !reduced) {
+    var traceItems = traceViz.querySelectorAll('.trace-item');
+    var traceActivated = false;
+
+    if (traceItems.length) {
+      var traceObs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting && !traceActivated) {
+            traceActivated = true;
+            animateTrace();
+            traceObs.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.3 });
+      traceObs.observe(traceViz);
     }
 
-    window.addEventListener('resize', function () {
-      pulse.style.left = stageCenter(Math.max(0, idx - 1)) + 'px';
-    });
-    tick();
-  } else if (hero) {
-    hero.querySelectorAll('.stage').forEach(function (s, i) {
-      s.classList.add(i < 6 ? 'done' : 'on');
-      s.classList.add('done');
-    });
-    if (checkEl) checkEl.style.opacity = '1';
+    function animateTrace() {
+      traceItems.forEach(function (item, i) {
+        setTimeout(function () {
+          item.classList.add('trace-item--active');
+        }, i * 250);
+      });
+    }
+  }
+
+  /* --- Chapter 04: Observability counters --- */
+  var obsConsole = document.getElementById('obs-console');
+  if (obsConsole && !reduced) {
+    var obsActivated = false;
+    var obsObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting && !obsActivated) {
+          obsActivated = true;
+          // trigger count-up on all data-count elements within
+          obsConsole.querySelectorAll('[data-count]').forEach(function (el) {
+            countUp(el);
+          });
+          obsObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    obsObs.observe(obsConsole);
+  }
+
+  /* --- Chapter 05: Flow signals --- */
+  var flowViz = document.getElementById('flow-viz');
+  if (flowViz && !reduced) {
+    var flowActivated = false;
+    var flowObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting && !flowActivated) {
+          flowActivated = true;
+          flowViz.classList.add('in');
+          flowObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    flowObs.observe(flowViz);
   }
 
   /* ---------- scroll story: activate stages ---------- */

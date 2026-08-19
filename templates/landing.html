@@ -25,9 +25,9 @@
       <span class="brand-name">CerebrOps</span>
     </a>
     <nav class="nav-links" aria-label="Primary">
-      <a href="#product">Product</a>
-      <a href="#detection">Detection</a>
-      <a href="#observability">Observability</a>
+      <a href="#ch-pipeline">Pipeline</a>
+      <a href="#ch-detection">Detection</a>
+      <a href="#ch-observability">Observability</a>
       <a href="/experience">Experience</a>
     </nav>
     <div class="nav-actions">
@@ -39,337 +39,443 @@
     </div>
   </header>
 
-  <!-- ============ CINEMATIC HERO ============ -->
+  <!-- ============ CINEMATIC HERO (UNCHANGED) ============ -->
   <main id="top">
     <section class="hero-cinematic">
-      <!-- cinematic full-bleed background video -->
       <div class="hero-bg" aria-hidden="true">
         <video class="hero-video" autoplay muted loop playsinline preload="metadata" tabindex="-1">
           <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260423_084718_72a17915-4964-4059-afcd-22d59399b72e.mp4" type="video/mp4">
         </video>
         <div class="hero-scrim"></div>
       </div>
-
-      <!-- headline: center-right -->
       <div class="hero-cinema-content">
         <h1 class="hero-cinema-title" id="hero-cinema-title">
           Ship code without<br>
           <span class="serif-it">the ceremony.</span>
         </h1>
       </div>
-
-      <!-- giant wordmark -->
       <div class="hero-wordmark-wrap">
         <h2 class="hero-wordmark" id="hero-wordmark">CerebrOps</h2>
       </div>
     </section>
 
-    <!-- ============ POST-HERO INTRO ============ -->
-    <section class="hero-intro" id="hero-intro">
-      <div class="intro-content">
-        <p class="eyebrow gsap-reveal">AI-powered deployment intelligence</p>
-        <h2 class="intro-headline gsap-reveal">
-          Every commit travels<br>
-          <span class="mono accent-text">commit → build → test → security → deploy → production</span>
-        </h2>
-        <p class="intro-sub gsap-reveal">
-          CerebrOps watches the whole journey, learns your normal, and tells you
-          <em>which deploy</em> broke things when something slips.
-        </p>
-        <div class="intro-cta gsap-reveal">
-          <a class="btn btn-primary btn-lg" href="/dashboard">Open the dashboard</a>
-          <a class="btn btn-lg" href="#product">See how it works</a>
-        </div>
-        <div class="intro-meta gsap-reveal">
-          <span class="chip"><span class="dot dot-success"></span> pipeline webhook live</span>
-          <span class="chip">Prometheus &amp; Grafana native</span>
-          <span class="chip">runs in your cluster</span>
+    <!-- ================================================================
+         CHAPTER 01 — THE PIPELINE
+         ================================================================ -->
+    <section class="chapter" id="ch-pipeline">
+      <div class="ch-header">
+        <span class="ch-idx mono">01</span>
+        <span class="ch-label mono">/ PIPELINE</span>
+      </div>
+      <div class="ch-content">
+        <h2 class="ch-headline gsap-reveal">Every deployment<br><span class="serif-it">leaves a trace.</span></h2>
+        <p class="ch-sub gsap-reveal">CerebrOps watches each stage of your pipeline — commit, build, test, security, deploy, production — and builds a living record of every run.</p>
+      </div>
+
+      <!-- Pipeline visualization -->
+      <div class="pipeline-viz gsap-reveal" id="pipeline-viz">
+        <svg class="pipeline-svg" viewBox="0 0 900 120" preserveAspectRatio="xMidYMid meet">
+          <!-- connecting line -->
+          <line class="pipe-line" x1="75" y1="60" x2="825" y2="60" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+          <!-- animated signal line -->
+          <line class="pipe-signal" x1="75" y1="60" x2="825" y2="60" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 8" opacity="0.6"/>
+          <!-- nodes -->
+          <g class="pipe-node" data-stage="0" transform="translate(75,60)">
+            <circle r="18" fill="var(--surface-2)" stroke="var(--border-strong)" stroke-width="1.5"/>
+            <text y="1" text-anchor="middle" fill="var(--ink-muted)" font-family="var(--font-mono)" font-size="9" font-weight="600">git</text>
+            <text y="32" text-anchor="middle" fill="var(--ink-muted)" font-family="var(--font-ui)" font-size="10">Commit</text>
+          </g>
+          <g class="pipe-node" data-stage="1" transform="translate(225,60)">
+            <circle r="18" fill="var(--surface-2)" stroke="var(--border-strong)" stroke-width="1.5"/>
+            <text y="1" text-anchor="middle" fill="var(--ink-muted)" font-family="var(--font-mono)" font-size="9" font-weight="600">b</text>
+            <text y="32" text-anchor="middle" fill="var(--ink-muted)" font-family="var(--font-ui)" font-size="10">Build</text>
+          </g>
+          <g class="pipe-node" data-stage="2" transform="translate(375,60)">
+            <circle r="18" fill="var(--surface-2)" stroke="var(--border-strong)" stroke-width="1.5"/>
+            <text y="1" text-anchor="middle" fill="var(--ink-muted)" font-family="var(--font-mono)" font-size="9" font-weight="600">t</text>
+            <text y="32" text-anchor="middle" fill="var(--ink-muted)" font-family="var(--font-ui)" font-size="10">Test</text>
+          </g>
+          <g class="pipe-node" data-stage="3" transform="translate(525,60)">
+            <circle r="18" fill="var(--surface-2)" stroke="var(--border-strong)" stroke-width="1.5"/>
+            <text y="1" text-anchor="middle" fill="var(--ink-muted)" font-family="var(--font-mono)" font-size="9" font-weight="600">s</text>
+            <text y="32" text-anchor="middle" fill="var(--ink-muted)" font-family="var(--font-ui)" font-size="10">Security</text>
+          </g>
+          <g class="pipe-node" data-stage="4" transform="translate(675,60)">
+            <circle r="18" fill="var(--surface-2)" stroke="var(--border-strong)" stroke-width="1.5"/>
+            <text y="1" text-anchor="middle" fill="var(--ink-muted)" font-family="var(--font-mono)" font-size="9" font-weight="600">d</text>
+            <text y="32" text-anchor="middle" fill="var(--ink-muted)" font-family="var(--font-ui)" font-size="10">Deploy</text>
+          </g>
+          <g class="pipe-node" data-stage="5" transform="translate(825,60)">
+            <circle r="18" fill="var(--surface-2)" stroke="var(--border-strong)" stroke-width="1.5"/>
+            <text y="1" text-anchor="middle" fill="var(--ink-muted)" font-family="var(--font-mono)" font-size="9" font-weight="600">★</text>
+            <text y="32" text-anchor="middle" fill="var(--ink-muted)" font-family="var(--font-ui)" font-size="10">Production</text>
+          </g>
+          <!-- active pulse -->
+          <circle class="pipe-pulse" cx="75" cy="60" r="6" fill="var(--accent)" opacity="0"/>
+        </svg>
+        <!-- Stage info panel -->
+        <div class="pipe-info" id="pipe-info">
+          <div class="pipe-info-inner">
+            <span class="pipe-info-stage mono" id="pipe-info-stage">COMMIT</span>
+            <span class="pipe-info-detail mono" id="pipe-info-detail">7d2f9a1 · main</span>
+          </div>
         </div>
       </div>
 
-      <!-- signature: live pipeline -->
-      <div class="hero-visual gsap-reveal" id="hero-visual">
-        <div class="vis-head">
-          <span class="vis-title">
-            <span class="dot dot-run" id="vis-live-dot"></span>
-            cerebrops-core · main
-          </span>
-          <span class="vis-meta mono caret" id="vis-meta">run-1842 · 42s</span>
+      <!-- Telemetry bar -->
+      <div class="telemetry-bar gsap-reveal">
+        <div class="tel-item">
+          <span class="tel-label mono">RUN</span>
+          <span class="tel-value mono">RUN_1842</span>
         </div>
-        <div class="pipeline" id="hero-pipeline" role="img" aria-label="Animated pipeline: commit, build, test, security, deploy, production">
-          <div class="pipeline-track" aria-hidden="true">
-            <div class="rail"></div>
-            <div class="pulse" id="pulse"></div>
-            <div class="stage" data-stage="commit">
-              <span class="stage-icon">git</span>
-              <span class="stage-name">Commit</span>
-              <span class="stage-time mono" data-time>—</span>
-            </div>
-            <div class="stage" data-stage="build">
-              <span class="stage-icon">b</span>
-              <span class="stage-name">Build</span>
-              <span class="stage-time mono" data-time>—</span>
-            </div>
-            <div class="stage" data-stage="test">
-              <span class="stage-icon">t</span>
-              <span class="stage-name">Test</span>
-              <span class="stage-time mono" data-time>—</span>
-            </div>
-            <div class="stage" data-stage="security">
-              <span class="stage-icon">s</span>
-              <span class="stage-name">Security</span>
-              <span class="stage-time mono" data-time>—</span>
-            </div>
-            <div class="stage" data-stage="deploy">
-              <span class="stage-icon">d</span>
-              <span class="stage-name">Deploy</span>
-              <span class="stage-time mono" data-time>—</span>
-            </div>
-            <div class="stage" data-stage="prod">
-              <span class="stage-icon">★</span>
-              <span class="stage-name">Production</span>
-              <span class="stage-time mono" data-time>—</span>
-            </div>
-          </div>
+        <div class="tel-item">
+          <span class="tel-label mono">DURATION</span>
+          <span class="tel-value mono">42.7s</span>
         </div>
-        <div class="vis-foot">
-          <span class="mono" id="vis-commit">7d2f9a1 · fix: backpressure on webhook ingress</span>
-          <span class="vis-check" id="vis-check">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-            passed
-          </span>
+        <div class="tel-item">
+          <span class="tel-label mono">STATUS</span>
+          <span class="tel-value mono tel-success">HEALTHY</span>
+        </div>
+        <div class="tel-item">
+          <span class="tel-label mono">BRANCH</span>
+          <span class="tel-value mono">main</span>
         </div>
       </div>
     </section>
 
-    <!-- ============ LOGO STRIP ============ -->
-    <section class="logo-strip" aria-label="Integrations">
-      <p class="strip-label gsap-reveal">Plugs into the pipeline you already run</p>
-      <div class="strip-row">
-        <span class="strip-item mono gsap-reveal" style="--i:0">GitHub Actions</span>
-        <span class="strip-item mono gsap-reveal" style="--i:1">GitLab CI</span>
-        <span class="strip-item mono gsap-reveal" style="--i:2">Jenkins</span>
-        <span class="strip-item mono gsap-reveal" style="--i:3">Prometheus</span>
-        <span class="strip-item mono gsap-reveal" style="--i:4">Grafana</span>
-        <span class="strip-item mono gsap-reveal" style="--i:5">Kubernetes</span>
-        <span class="strip-item mono gsap-reveal" style="--i:6">Slack</span>
+    <!-- ================================================================
+         CHAPTER 02 — DETECTION
+         ================================================================ -->
+    <section class="chapter chapter--alt" id="ch-detection">
+      <div class="ch-header">
+        <span class="ch-idx mono">02</span>
+        <span class="ch-label mono">/ DETECTION</span>
       </div>
-    </section>
+      <div class="ch-content">
+        <h2 class="ch-headline gsap-reveal">It knows what normal<br>looks like. It tells you when<br><span class="serif-it">normal changes.</span></h2>
+        <p class="ch-sub gsap-reveal">Forecast-residual detection learns your per-metric weekly profile and flags real deviations — then traces them back to the deploy.</p>
+      </div>
 
-    <!-- ============ PRODUCT / SCROLL STORY ============ -->
-    <section class="section" id="product">
-      <div class="section-head gsap-reveal">
-        <p class="eyebrow">From commit to production</p>
-        <h2>One journey. <span class="serif-it">Zero guesswork.</span></h2>
-        <p class="section-sub">A single surface for everything that happens to your code after it leaves your laptop.</p>
+      <!-- Detection graph visualization -->
+      <div class="detect-viz gsap-reveal" id="detect-viz">
+        <div class="detect-viz-header">
+          <span class="mono">error_rate · forecast-residual</span>
+          <span class="badge badge-run"><span class="dot dot-run"></span> anomaly detected</span>
+        </div>
+        <svg class="detect-svg" viewBox="0 0 800 200" preserveAspectRatio="xMidYMid meet">
+          <!-- baseline zone -->
+          <rect x="0" y="60" width="800" height="80" fill="rgba(77,141,255,0.04)" rx="4"/>
+          <!-- baseline line -->
+          <line x1="0" y1="100" x2="800" y2="100" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="4 4"/>
+          <!-- normal data path -->
+          <path class="detect-normal" d="M0,102 L40,98 L80,104 L120,99 L160,103 L200,97 L240,101 L280,99 L320,103 L360,98 L400,102 L440,100 L480,104 L520,99 L560,101 L600,103 L640,12 L680,18 L720,55 L760,95 L800,100" fill="none" stroke="var(--ink-muted)" stroke-width="2" stroke-linecap="round"/>
+          <!-- anomaly fill -->
+          <path class="detect-fill" d="M600,103 L640,12 L680,18 L720,55 L760,95 L800,100 L800,200 L600,200 Z" fill="url(#anomalyGrad)" opacity="0"/>
+          <!-- anomaly marker -->
+          <circle class="detect-anomaly-dot" cx="640" cy="12" r="5" fill="var(--fail)" opacity="0"/>
+          <line class="detect-anomaly-line" x1="640" y1="12" x2="640" y2="200" stroke="var(--fail)" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
+          <!-- labels -->
+          <text x="10" y="55" fill="var(--ink-muted)" font-family="var(--font-mono)" font-size="10" opacity="0.6">NORMAL</text>
+          <text x="645" y="8" fill="var(--fail)" font-family="var(--font-mono)" font-size="10" opacity="0" class="detect-anomaly-label">ANOMALY</text>
+          <defs>
+            <linearGradient id="anomalyGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--fail)" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="var(--fail)" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="detect-viz-footer">
+          <span class="mono">14.2× above forecast</span>
+          <span class="mono detect-root-cause">↳ likely cause: run-1841 · gateway (main@deadbeef)</span>
+        </div>
       </div>
-      <div class="story" id="story">
-        <div class="story-visual reveal reveal-d1">
-          <div class="story-pipeline" aria-hidden="true">
-            <div class="story-stage" data-stage="commit">
-              <span class="story-icon">git</span>
-              <div><span class="story-name">Commit pushed</span><span class="story-sub mono">7d2f9a1 · main</span></div>
-              <span class="story-check">✓</span>
-            </div>
-            <div class="story-conn"></div>
-            <div class="story-stage" data-stage="build">
-              <span class="story-icon">b</span>
-              <div><span class="story-name">Build</span><span class="story-sub mono">42s · cached</span></div>
-              <span class="story-check">✓</span>
-            </div>
-            <div class="story-conn"></div>
-            <div class="story-stage" data-stage="test">
-              <span class="story-icon">t</span>
-              <div><span class="story-name">Tests</span><span class="story-sub mono">312 passed</span></div>
-              <span class="story-check">✓</span>
-            </div>
-            <div class="story-conn"></div>
-            <div class="story-stage" data-stage="security">
-              <span class="story-icon">s</span>
-              <div><span class="story-name">Security</span><span class="story-sub mono">trivy · 0 critical</span></div>
-              <span class="story-check">✓</span>
-            </div>
-            <div class="story-conn"></div>
-            <div class="story-stage" data-stage="deploy">
-              <span class="story-icon">d</span>
-              <div><span class="story-name">Deploy</span><span class="story-sub mono">rolling · 2/2 ready</span></div>
-              <span class="story-check">✓</span>
-            </div>
-            <div class="story-conn"></div>
-            <div class="story-stage" data-stage="prod">
-              <span class="story-icon">★</span>
-              <div><span class="story-name">Production</span><span class="story-sub mono">live · watching</span></div>
-              <span class="story-check">✓</span>
-            </div>
+
+      <!-- Detection features -->
+      <div class="detect-features">
+        <div class="detect-feature gsap-reveal" style="--i:0">
+          <span class="detect-feature-icon">↯</span>
+          <div>
+            <p class="detect-feature-title">Seasonal-naive forecasting</p>
+            <p class="detect-feature-sub">Hour-of-week profiles per metric, robust MAD thresholds. No black box.</p>
           </div>
         </div>
-        <div class="story-copy">
-          <div class="story-block" data-story="commit">
-            <p class="story-idx mono">01</p>
-            <h3>Webhooks, not adapters</h3>
-            <p>Your CI posts one JSON event per stage. CerebrOps stores it, timestamps it, and turns it into a living record of every run.</p>
+        <div class="detect-feature gsap-reveal" style="--i:1">
+          <span class="detect-feature-icon">◎</span>
+          <div>
+            <p class="detect-feature-title">Deploy-correlated root cause</p>
+            <p class="detect-feature-sub">Every alert carries the deploy that most likely caused it — branch and commit included.</p>
           </div>
-          <div class="story-block" data-story="build">
-            <p class="story-idx mono">02</p>
-            <h3>Builds you can interrogate</h3>
-            <p>Durations, branches, commits, authors, stages. Filter, search, and drill into any run without leaving the dashboard.</p>
-          </div>
-          <div class="story-block" data-story="test">
-            <p class="story-idx mono">03</p>
-            <h3>Tests as a signal, not a gate</h3>
-            <p>Pass rates feed your health model. A flaky suite that used to be background noise becomes a detectable drift.</p>
-          </div>
-          <div class="story-block" data-story="deploy">
-            <p class="story-idx mono">04</p>
-            <h3>Deploys that explain themselves</h3>
-            <p>When an anomaly fires, CerebrOps correlates it against recent deployments and names the likely culprit — with the commit.</p>
+        </div>
+        <div class="detect-feature gsap-reveal" style="--i:2">
+          <span class="detect-feature-icon">◇</span>
+          <div>
+            <p class="detect-feature-title">Drift-based retraining</p>
+            <p class="detect-feature-sub">Models retrain when the data drifts, not on a fixed 24-hour timer.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ============ DETECTION ============ -->
-    <section class="section alt" id="detection">
-      <div class="section-head left gsap-reveal">
-        <p class="eyebrow">AI anomaly detection</p>
-        <h2>It knows what normal looks like.<br>It tells you when <span class="serif-it">normal changes.</span></h2>
-        <p class="section-sub">Forecast-residual detection learns your per-metric weekly profile and flags real deviations — then traces them back to the deploy.</p>
+    <!-- ================================================================
+         CHAPTER 03 — DIAGNOSIS
+         ================================================================ -->
+    <section class="chapter" id="ch-diagnosis">
+      <div class="ch-header">
+        <span class="ch-idx mono">03</span>
+        <span class="ch-label mono">/ DIAGNOSIS</span>
       </div>
-      <div class="detect-grid">
-        <div class="detect-card gsap-reveal">
-          <div class="detect-top">
-            <span class="detect-badge badge badge-run"><span class="dot dot-run"></span> anomaly · forecast-residual</span>
-            <span class="detect-time mono">2 min ago</span>
+      <div class="ch-content">
+        <h2 class="ch-headline gsap-reveal">Tests are a signal,<br><span class="serif-it">not a score.</span></h2>
+        <p class="ch-sub gsap-reveal">CerebrOps correlates anomalies with recent deployments and names the likely culprit — with the commit, the branch, and the exact timing.</p>
+      </div>
+
+      <!-- Deployment trace visualization -->
+      <div class="trace-viz gsap-reveal" id="trace-viz">
+        <div class="trace-header">
+          <span class="trace-run mono">RUN_1842</span>
+          <span class="trace-status badge badge-success">HEALTHY</span>
+        </div>
+        <div class="trace-body">
+          <div class="trace-tree">
+            <div class="trace-item trace-item--active" data-trace="commit">
+              <div class="trace-dot"></div>
+              <div class="trace-line"></div>
+              <div class="trace-content">
+                <span class="trace-stage mono">commit</span>
+                <span class="trace-val mono">7d2f9a1 · main</span>
+              </div>
+            </div>
+            <div class="trace-item" data-trace="build">
+              <div class="trace-dot"></div>
+              <div class="trace-line"></div>
+              <div class="trace-content">
+                <span class="trace-stage mono">build</span>
+                <span class="trace-val mono">42s · cached</span>
+              </div>
+            </div>
+            <div class="trace-item" data-trace="test">
+              <div class="trace-dot"></div>
+              <div class="trace-line"></div>
+              <div class="trace-content">
+                <span class="trace-stage mono">test</span>
+                <span class="trace-val mono">312 passed · 98.5%</span>
+              </div>
+            </div>
+            <div class="trace-item" data-trace="security">
+              <div class="trace-dot"></div>
+              <div class="trace-line"></div>
+              <div class="trace-content">
+                <span class="trace-stage mono">security</span>
+                <span class="trace-val mono">trivy · 0 critical</span>
+              </div>
+            </div>
+            <div class="trace-item" data-trace="deploy">
+              <div class="trace-dot"></div>
+              <div class="trace-line"></div>
+              <div class="trace-content">
+                <span class="trace-stage mono">deploy</span>
+                <span class="trace-val mono">rolling · 2/2 ready</span>
+              </div>
+            </div>
+            <div class="trace-item" data-trace="prod">
+              <div class="trace-dot trace-dot--success"></div>
+              <div class="trace-content">
+                <span class="trace-stage mono">production</span>
+                <span class="trace-val mono">live · watching</span>
+              </div>
+            </div>
           </div>
-          <p class="detect-title">error_rate spiked 14.2× above forecast</p>
-          <div class="chart-demo" aria-hidden="true">
-            <svg viewBox="0 0 480 120" preserveAspectRatio="none">
+          <div class="trace-telemetry">
+            <div class="trace-stat">
+              <span class="trace-stat-val num">42.7</span>
+              <span class="trace-stat-unit">s</span>
+              <span class="trace-stat-label">total duration</span>
+            </div>
+            <div class="trace-stat">
+              <span class="trace-stat-val num">312</span>
+              <span class="trace-stat-label">tests passed</span>
+            </div>
+            <div class="trace-stat">
+              <span class="trace-stat-val num">0</span>
+              <span class="trace-stat-label">anomalies</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         CHAPTER 04 — OBSERVABILITY
+         ================================================================ -->
+    <section class="chapter chapter--alt" id="ch-observability">
+      <div class="ch-header">
+        <span class="ch-idx mono">04</span>
+        <span class="ch-label mono">/ OBSERVABILITY</span>
+      </div>
+      <div class="ch-content">
+        <h2 class="ch-headline gsap-reveal">Metrics your SRE<br>can <span class="serif-it">actually use.</span></h2>
+        <p class="ch-sub gsap-reveal">Prometheus-native metrics, error budgets, and burn alerts — plus the SQLite-backed store that keeps working when everything else hiccups.</p>
+      </div>
+
+      <!-- Observability console -->
+      <div class="obs-console gsap-reveal" id="obs-console">
+        <div class="obs-console-header">
+          <span class="mono">DEPLOYMENT HEALTH</span>
+          <span class="badge badge-success">all systems operational</span>
+        </div>
+        <div class="obs-console-body">
+          <!-- Main metric -->
+          <div class="obs-main-metric">
+            <span class="obs-main-val num" data-count="99.9">99.9</span>
+            <span class="obs-main-unit">%</span>
+            <span class="obs-main-label">30-day availability SLO</span>
+          </div>
+          <!-- Mini graph -->
+          <div class="obs-mini-graph">
+            <svg viewBox="0 0 300 80" preserveAspectRatio="none">
+              <path d="M0,40 L20,38 L40,42 L60,39 L80,41 L100,37 L120,40 L140,38 L160,42 L180,39 L200,41 L220,38 L240,40 L260,39 L280,41 L300,40" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity="0.5"/>
+              <path d="M0,40 L20,38 L40,42 L60,39 L80,41 L100,37 L120,40 L140,38 L160,42 L180,39 L200,41 L220,38 L240,40 L260,39 L280,41 L300,40 L300,80 L0,80 Z" fill="url(#obsGrad)" opacity="0.3"/>
               <defs>
-                <linearGradient id="spikeFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="var(--fail)" stop-opacity="0.28"/>
-                  <stop offset="100%" stop-color="var(--fail)" stop-opacity="0"/>
+                <linearGradient id="obsGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
                 </linearGradient>
               </defs>
-              <line x1="0" y1="60" x2="480" y2="60" stroke="var(--border-faint)"/>
-              <path d="M0 58 L40 62 L80 56 L120 60 L160 57 L200 63 L240 59 L280 61 L320 58 L360 12 L400 14 L440 52 L480 58" fill="none" stroke="var(--ink-muted)" stroke-width="1.5"/>
-              <path d="M0 58 L40 62 L80 56 L120 60 L160 57 L200 63 L240 59 L280 61 L320 58 L360 12 L400 14 L440 52 L480 58 L480 120 L0 120 Z" fill="url(#spikeFill)"/>
-              <line x1="360" y1="0" x2="360" y2="120" stroke="var(--fail)" stroke-dasharray="3 3" stroke-width="1"/>
-              <circle cx="360" cy="12" r="3.5" fill="var(--fail)"/>
-              <circle cx="320" cy="58" r="2.5" fill="var(--accent)"/>
             </svg>
           </div>
-          <div class="detect-root">
-            <span class="mono">↳ likely cause</span>
-            <p class="mono">run-1841 · gateway (main@deadbeef) 1.1m before</p>
-          </div>
-        </div>
-        <div class="detect-list">
-          <div class="detect-item gsap-reveal" style="--i:0">
-            <span class="detect-icon">↯</span>
-            <div class="grow">
-              <p class="detect-item-title">Seasonal-naive forecasting</p>
-              <p class="detect-item-sub">Hour-of-week profiles per metric, robust MAD thresholds. No black box.</p>
+          <!-- Stats row -->
+          <div class="obs-stats-row">
+            <div class="obs-mini-stat">
+              <span class="obs-mini-val num" data-count="14.4">14.4</span>
+              <span class="obs-mini-unit">×</span>
+              <span class="obs-mini-label">fast-burn threshold</span>
             </div>
-          </div>
-          <div class="detect-item gsap-reveal" style="--i:1">
-            <span class="detect-icon">◎</span>
-            <div class="grow">
-              <p class="detect-item-title">Deploy-correlated root cause</p>
-              <p class="detect-item-sub">Every alert carries the deploy that most likely caused it — branch and commit included.</p>
+            <div class="obs-mini-stat">
+              <span class="obs-mini-val num" data-count="3">3</span>
+              <span class="obs-mini-label">escalation tiers</span>
             </div>
-          </div>
-          <div class="detect-item gsap-reveal" style="--i:2">
-            <span class="detect-icon">◇</span>
-            <div class="grow">
-              <p class="detect-item-title">Drift-based retraining</p>
-              <p class="detect-item-sub">Models retrain when the data drifts, not on a fixed 24-hour timer.</p>
-            </div>
-          </div>
-          <div class="detect-item gsap-reveal" style="--i:3">
-            <span class="detect-icon">▣</span>
-            <div class="grow">
-              <p class="detect-item-title">Alert to Slack, runbook attached</p>
-              <p class="detect-item-sub">Every page has a runbook. Every runbook has a next step.</p>
+            <div class="obs-mini-stat">
+              <span class="obs-mini-val num" data-count="12.6">12.6</span>
+              <span class="obs-mini-unit">%</span>
+              <span class="obs-mini-label">error budget left</span>
             </div>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- ============ OBSERVABILITY ============ -->
-    <section class="section" id="observability">
-      <div class="section-head gsap-reveal">
-        <p class="eyebrow">Observability</p>
-        <h2>Metrics your SRE can <span class="serif-it">actually use.</span></h2>
-        <p class="section-sub">Prometheus-native metrics, error budgets, and burn alerts — plus the SQLite-backed store that keeps working when everything else hiccups.</p>
-      </div>
-      <div class="obs-grid">
-        <div class="obs-col">
-          <div class="obs-stat gsap-reveal" style="--i:0">
-            <p class="obs-stat-value num" data-count="99.9">99.9<small>%</small></p>
-            <p class="obs-stat-label">30-day availability SLO</p>
-          </div>
-          <div class="obs-stat gsap-reveal" style="--i:1">
-            <p class="obs-stat-value num" data-count="14.4">14.4<small>×</small></p>
-            <p class="obs-stat-label">fast-burn page threshold</p>
-          </div>
-          <div class="obs-stat gsap-reveal" style="--i:2">
-            <p class="obs-stat-value num" data-count="3">3<small>tier</small></p>
-            <p class="obs-stat-label">escalation runbooks</p>
-          </div>
-        </div>
-        <div class="obs-tile gsap-reveal" style="--i:0">
-          <div class="obs-tile-head">
+        <!-- Code preview -->
+        <div class="obs-code-preview">
+          <div class="obs-code-head">
             <span class="mono">prometheus-rules.yml</span>
-            <span class="badge badge-success">error budget 12.6% left</span>
           </div>
           <pre class="obs-code"><code><span class="tok-k">- alert:</span> CerebrOpsFastBurn
-  <span class="tok-k">expr:</span> <span class="tok-v">sum_over_time(</span>
-    <span class="tok-v">error_budget_used:ratio[1h]</span>) &gt; 14.4
-  <span class="tok-k">labels:</span>
-    <span class="tok-k">severity:</span> <span class="tok-v">page</span>
-  <span class="tok-k">annotations:</span>
-    <span class="tok-k">runbook:</span> <span class="tok-v">/runbooks/slo-burn</span></code></pre>
-        </div>
-        <div class="obs-tile gsap-reveal" style="--i:1">
-          <div class="obs-tile-head">
-            <span class="mono">/metrics-prom</span>
-            <span class="badge badge-accent">scraped every 15s</span>
-          </div>
-          <pre class="obs-code"><code><span class="tok-k"># HELP cerebrops_http_requests_total</span>
-<span class="tok-v">cerebrops_http_requests_total</span> 4812
-<span class="tok-v">cerebrops_http_request_duration_seconds</span>{<span class="tok-k">quantile=</span><span class="tok-s">"0.95"</span>} <span class="tok-v">0.18</span>
-<span class="tok-v">cerebrops_anomalies_detected_total</span>{<span class="tok-k">method=</span><span class="tok-s">"forecast-residual"</span>} <span class="tok-v">7</span></code></pre>
+  <span class="tok-k">expr:</span> <span class="tok-v">sum_over_time(error_budget_used:ratio[1h]</span>) &gt; 14.4
+  <span class="tok-k">labels:</span> { <span class="tok-k">severity:</span> <span class="tok-v">page</span> }
+  <span class="tok-k">annotations:</span> { <span class="tok-k">runbook:</span> <span class="tok-v">/runbooks/slo-burn</span> }</code></pre>
         </div>
       </div>
     </section>
 
-    <!-- ============ INTEGRATIONS ============ -->
-    <section class="section alt" id="integrations">
-      <div class="section-head gsap-reveal">
-        <p class="eyebrow">Integrations</p>
-        <h2>One webhook. <span class="serif-it">Everything connected.</span></h2>
-        <p class="section-sub">CerebrOps runs where your pipeline runs — in your cluster, behind your firewall, owned by you.</p>
+    <!-- ================================================================
+         CHAPTER 05 — CONNECTED
+         ================================================================ -->
+    <section class="chapter" id="ch-connected">
+      <div class="ch-header">
+        <span class="ch-idx mono">05</span>
+        <span class="ch-label mono">/ CONNECTED</span>
       </div>
-      <div class="int-grid">
-        <div class="int-card gsap-reveal" style="--i:0">
-          <p class="int-idx mono">CI / CD</p>
+      <div class="ch-content">
+        <h2 class="ch-headline gsap-reveal">One webhook.<br><span class="serif-it">Everything connected.</span></h2>
+        <p class="ch-sub gsap-reveal">CerebrOps sits where your pipeline runs — in your cluster, behind your firewall, owned by you.</p>
+      </div>
+
+      <!-- Data flow diagram -->
+      <div class="flow-viz gsap-reveal" id="flow-viz">
+        <svg class="flow-svg" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid meet">
+          <!-- Left sources -->
+          <g class="flow-source" transform="translate(80,80)">
+            <rect x="-50" y="-16" width="100" height="32" rx="6" fill="var(--surface-2)" stroke="var(--border-strong)" stroke-width="1"/>
+            <text text-anchor="middle" y="4" fill="var(--ink-secondary)" font-family="var(--font-mono)" font-size="11">GitHub</text>
+          </g>
+          <g class="flow-source" transform="translate(80,150)">
+            <rect x="-50" y="-16" width="100" height="32" rx="6" fill="var(--surface-2)" stroke="var(--border-strong)" stroke-width="1"/>
+            <text text-anchor="middle" y="4" fill="var(--ink-secondary)" font-family="var(--font-mono)" font-size="11">GitLab CI</text>
+          </g>
+          <g class="flow-source" transform="translate(80,220)">
+            <rect x="-50" y="-16" width="100" height="32" rx="6" fill="var(--surface-2)" stroke="var(--border-strong)" stroke-width="1"/>
+            <text text-anchor="middle" y="4" fill="var(--ink-secondary)" font-family="var(--font-mono)" font-size="11">Jenkins</text>
+          </g>
+
+          <!-- Center: CerebrOps -->
+          <g transform="translate(400,150)">
+            <rect x="-70" y="-40" width="140" height="80" rx="12" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+            <text text-anchor="middle" y="-8" fill="var(--ink)" font-family="var(--font-ui)" font-size="14" font-weight="600">CerebrOps</text>
+            <text text-anchor="middle" y="14" fill="var(--ink-muted)" font-family="var(--font-mono)" font-size="9">AI-powered</text>
+          </g>
+
+          <!-- Right destinations -->
+          <g class="flow-dest" transform="translate(720,80)">
+            <rect x="-50" y="-16" width="100" height="32" rx="6" fill="var(--surface-2)" stroke="var(--border-strong)" stroke-width="1"/>
+            <text text-anchor="middle" y="4" fill="var(--ink-secondary)" font-family="var(--font-mono)" font-size="11">Grafana</text>
+          </g>
+          <g class="flow-dest" transform="translate(720,150)">
+            <rect x="-50" y="-16" width="100" height="32" rx="6" fill="var(--surface-2)" stroke="var(--border-strong)" stroke-width="1"/>
+            <text text-anchor="middle" y="4" fill="var(--ink-secondary)" font-family="var(--font-mono)" font-size="11">Kubernetes</text>
+          </g>
+          <g class="flow-dest" transform="translate(720,220)">
+            <rect x="-50" y="-16" width="100" height="32" rx="6" fill="var(--surface-2)" stroke="var(--border-strong)" stroke-width="1"/>
+            <text text-anchor="middle" y="4" fill="var(--ink-secondary)" font-family="var(--font-mono)" font-size="11">Slack</text>
+          </g>
+
+          <!-- Connection lines: left to center -->
+          <line class="flow-line flow-line--in" x1="130" y1="80" x2="330" y2="150" stroke="var(--accent)" stroke-width="1" opacity="0.3"/>
+          <line class="flow-line flow-line--in" x1="130" y1="150" x2="330" y2="150" stroke="var(--accent)" stroke-width="1" opacity="0.3"/>
+          <line class="flow-line flow-line--in" x1="130" y1="220" x2="330" y2="150" stroke="var(--accent)" stroke-width="1" opacity="0.3"/>
+          <!-- Connection lines: center to right -->
+          <line class="flow-line flow-line--out" x1="470" y1="150" x2="670" y2="80" stroke="var(--accent)" stroke-width="1" opacity="0.3"/>
+          <line class="flow-line flow-line--out" x1="470" y1="150" x2="670" y2="150" stroke="var(--accent)" stroke-width="1" opacity="0.3"/>
+          <line class="flow-line flow-line--out" x1="470" y1="150" x2="670" y2="220" stroke="var(--accent)" stroke-width="1" opacity="0.3"/>
+
+          <!-- Animated signal dots -->
+          <circle class="flow-signal" r="3" fill="var(--accent)" opacity="0">
+            <animateMotion dur="2s" repeatCount="indefinite" path="M130,80 L330,150" begin="0s"/>
+          </circle>
+          <circle class="flow-signal" r="3" fill="var(--accent)" opacity="0">
+            <animateMotion dur="2s" repeatCount="indefinite" path="M130,150 L330,150" begin="0.7s"/>
+          </circle>
+          <circle class="flow-signal" r="3" fill="var(--accent)" opacity="0">
+            <animateMotion dur="2s" repeatCount="indefinite" path="M130,220 L330,150" begin="1.4s"/>
+          </circle>
+          <circle class="flow-signal" r="3" fill="var(--accent)" opacity="0">
+            <animateMotion dur="2s" repeatCount="indefinite" path="M470,150 L670,80" begin="0.5s"/>
+          </circle>
+          <circle class="flow-signal" r="3" fill="var(--accent)" opacity="0">
+            <animateMotion dur="2s" repeatCount="indefinite" path="M470,150 L670,150" begin="1.2s"/>
+          </circle>
+          <circle class="flow-signal" r="3" fill="var(--accent)" opacity="0">
+            <animateMotion dur="2s" repeatCount="indefinite" path="M470,150 L670,220" begin="1.9s"/>
+          </circle>
+        </svg>
+      </div>
+
+      <!-- Integration cards -->
+      <div class="flow-cards">
+        <div class="flow-card gsap-reveal" style="--i:0">
+          <p class="flow-card-idx mono">CI / CD</p>
           <ul>
             <li>GitHub Actions &amp; GitLab CI webhooks</li>
             <li>Stage-level event ingestion</li>
             <li>Commit, branch, author attribution</li>
           </ul>
         </div>
-        <div class="int-card gsap-reveal" style="--i:1">
-          <p class="int-idx mono">Telemetry</p>
+        <div class="flow-card gsap-reveal" style="--i:1">
+          <p class="flow-card-idx mono">Telemetry</p>
           <ul>
             <li>Prometheus text-format endpoint</li>
             <li>Grafana datasources &amp; dashboards</li>
             <li>SLO recording &amp; burn alerts</li>
           </ul>
         </div>
-        <div class="int-card gsap-reveal" style="--i:2">
-          <p class="int-idx mono">Delivery</p>
+        <div class="flow-card gsap-reveal" style="--i:2">
+          <p class="flow-card-idx mono">Delivery</p>
           <ul>
             <li>Slack alerts with runbook links</li>
             <li>ArgoCD / GitOps ready</li>
@@ -379,18 +485,31 @@
       </div>
     </section>
 
-    <!-- ============ CTA ============ -->
-    <section class="cta">
-      <div class="cta-glow" aria-hidden="true"></div>
-      <h2 class="gsap-reveal">Your next deploy deserves<br><span class="serif-it">a witness.</span></h2>
+    <!-- ================================================================
+         CHAPTER 06 — CTA
+         ================================================================ -->
+    <section class="chapter chapter--cta" id="ch-cta">
+      <div class="cta-terminal gsap-reveal">
+        <div class="cta-terminal-head">
+          <span class="mono">RUN_1842</span>
+        </div>
+        <div class="cta-terminal-body">
+          <p class="cta-terminal-status mono">DEPLOYMENT COMPLETE</p>
+          <div class="cta-terminal-check">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            <span class="mono" style="color: var(--success)">HEALTHY</span>
+          </div>
+        </div>
+      </div>
+      <h2 class="cta-headline gsap-reveal">Your next deploy deserves<br><span class="serif-it">a witness.</span></h2>
       <p class="cta-sub gsap-reveal">Open the dashboard and see the journey from commit to production — live.</p>
       <div class="gsap-reveal">
         <a class="btn btn-primary btn-lg" href="/dashboard">Open the dashboard</a>
       </div>
-      <p class="cta-foot mono">cerebrops · commit → build → test → security → deploy → production</p>
     </section>
   </main>
 
+  <!-- ============ FOOTER ============ -->
   <footer class="landing-footer">
     <div class="footer-inner">
       <a class="brand" href="#top">
@@ -400,9 +519,9 @@
         <span class="brand-name">CerebrOps</span>
       </a>
       <div class="footer-links">
-        <a href="#product">Product</a>
-        <a href="#detection">Detection</a>
-        <a href="#observability">Observability</a>
+        <a href="#ch-pipeline">Pipeline</a>
+        <a href="#ch-detection">Detection</a>
+        <a href="#ch-observability">Observability</a>
         <a href="/experience">Experience</a>
         <a href="/dashboard">Dashboard</a>
       </div>

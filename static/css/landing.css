@@ -429,128 +429,211 @@ main, header, footer { position: relative; z-index: 1; }
   box-shadow: 0 4px 12px rgba(77, 141, 255, 0.15);
 }
 
-/* ---------- sections ---------- */
+/* ============================================================
+   Chapter-based layout system
+   ============================================================ */
 
-.section {
+.chapter {
+  position: relative;
   max-width: var(--content-max);
   margin: 0 auto;
-  padding: clamp(72px, 12vh, 140px) clamp(16px, 5vw, 48px);
+  padding: clamp(80px, 14vh, 160px) clamp(16px, 5vw, 48px);
 }
-.section.alt {
+.chapter--alt {
   max-width: none;
   background: var(--bg-elevated);
   border-top: 1px solid var(--border-faint);
   border-bottom: 1px solid var(--border-faint);
 }
-.section.alt > * { max-width: var(--content-max); margin-left: auto; margin-right: auto; }
+.chapter--alt > * { max-width: var(--content-max); margin-left: auto; margin-right: auto; }
 
-.section-head { text-align: center; margin-bottom: clamp(40px, 7vh, 72px); }
-.section-head.left { text-align: left; max-width: 720px; }
-.section-head .eyebrow { margin-bottom: var(--sp-3); }
-.section-head h2 { font-size: clamp(28px, 4vw, 42px); letter-spacing: var(--tracking-tight); line-height: 1.1; margin-bottom: var(--sp-4); }
-.section-sub { color: var(--ink-muted); font-size: var(--text-lg); max-width: 560px; }
-.section-head:not(.left) .section-sub { margin: 0 auto; }
+/* Chapter header */
+.ch-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: clamp(24px, 4vh, 40px);
+}
+.ch-idx {
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.ch-label {
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Chapter content */
+.ch-content {
+  max-width: 720px;
+  margin-bottom: clamp(48px, 8vh, 80px);
+}
+.ch-headline {
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.1;
+  color: var(--ink);
+  margin-bottom: var(--sp-5);
+}
+.ch-sub {
+  color: var(--ink-secondary);
+  font-size: var(--text-lg);
+  line-height: 1.65;
+  max-width: 560px;
+}
 
 /* accent text utility */
 .accent-text { color: var(--accent); }
 
-/* ---------- scroll story ---------- */
+/* ============================================================
+   Chapter 01 — Pipeline visualization
+   ============================================================ */
 
-.story {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(32px, 6vw, 80px);
-  align-items: center;
-}
-
-.story-visual { position: sticky; top: 96px; }
-.story-pipeline {
+.pipeline-viz {
   border: 1px solid var(--border-strong);
   border-radius: var(--r-lg);
   background: var(--surface);
-  padding: var(--sp-6);
-  box-shadow: var(--shadow-md);
-  display: flex;
-  flex-direction: column;
+  overflow: hidden;
+  margin-bottom: var(--sp-6);
 }
-.story-stage {
+.pipeline-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  padding: var(--sp-6) var(--sp-4);
+}
+.pipe-node circle {
+  transition: all 0.5s var(--ease-out);
+}
+.pipe-node.active circle {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+  filter: drop-shadow(0 0 12px var(--glow-accent));
+}
+.pipe-node.done circle {
+  fill: var(--success-soft);
+  stroke: var(--success);
+}
+.pipe-node text {
+  transition: fill 0.3s;
+}
+.pipe-node.active text:first-of-type { fill: var(--accent); }
+.pipe-node.done text:first-of-type { fill: var(--success); }
+.pipe-pulse {
+  transition: cx 0.8s var(--ease-in-out), opacity 0.3s;
+}
+.pipe-signal {
+  stroke-dashoffset: 0;
+  animation: signalFlow 3s linear infinite;
+}
+@keyframes signalFlow {
+  to { stroke-dashoffset: -24; }
+}
+
+/* Pipeline info panel */
+.pipe-info {
+  border-top: 1px solid var(--border-faint);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-elevated);
+}
+.pipe-info-inner {
   display: flex;
   align-items: center;
   gap: var(--sp-4);
-  padding: var(--sp-3);
-  border: 1px solid transparent;
-  border-radius: var(--r-md);
-  opacity: 0.4;
-  transition: all var(--dur-slow) var(--ease-out);
 }
-.story-stage.active { opacity: 1; border-color: var(--border); background: var(--surface-2); }
-.story-icon {
-  width: 34px; height: 34px; flex: none;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: var(--r-md);
-  border: 1px solid var(--border-strong);
-  background: var(--surface-3);
-  color: var(--ink-secondary);
-  font-family: var(--font-mono);
+.pipe-info-stage {
+  color: var(--accent);
   font-size: var(--text-xs);
   font-weight: 600;
+  letter-spacing: 0.08em;
 }
-.story-stage.active .story-icon { border-color: var(--accent-border); color: var(--accent); background: var(--accent-soft); }
-.story-name { display: block; font-size: var(--text-sm); font-weight: 500; }
-.story-sub { display: block; font-size: var(--text-xs); color: var(--ink-muted); margin-top: 2px; }
-.story-check { margin-left: auto; color: var(--success); font-size: var(--text-md); font-weight: 700; opacity: 0; transition: opacity var(--dur) var(--ease-out); }
-.story-stage.active .story-check { opacity: 1; }
-.story-conn { width: 2px; height: 26px; margin-left: calc(var(--sp-3) + 17px); background: var(--border); }
-.story-stage.active + .story-conn { background: var(--accent-border); }
-
-.story-copy { display: flex; flex-direction: column; gap: clamp(40px, 7vh, 72px); }
-.story-block { max-width: 460px; }
-.story-idx { color: var(--accent); margin-bottom: var(--sp-2); }
-.story-block h3 { font-size: var(--text-xl); margin-bottom: var(--sp-2); }
-.story-block p { color: var(--ink-secondary); line-height: 1.6; font-size: var(--text-md); }
-
-/* ---------- detection ---------- */
-
-.detect-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: clamp(24px, 4vw, 48px);
-  align-items: stretch;
+.pipe-info-detail {
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
 }
 
-.detect-card {
-  border: 1px solid var(--border-strong);
-  border-radius: var(--r-lg);
-  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
-  padding: var(--sp-5);
-  box-shadow: var(--shadow-md);
-  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+/* Telemetry bar */
+.telemetry-bar {
+  display: flex;
+  gap: var(--sp-6);
+  flex-wrap: wrap;
+  padding: var(--sp-5) 0;
+  border-top: 1px solid var(--border-faint);
+  border-bottom: 1px solid var(--border-faint);
 }
-.detect-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg), 0 0 40px var(--glow-accent);
-}
-.detect-top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-4); flex-wrap: wrap; }
-.detect-time { color: var(--ink-muted); font-size: var(--text-xs); }
-.detect-title { font-size: var(--text-lg); font-weight: 600; letter-spacing: var(--tracking-tight); margin-bottom: var(--sp-4); }
-.chart-demo { margin: 0 calc(var(--sp-5) * -1); }
-.chart-demo svg { width: 100%; height: 120px; }
-.detect-root {
+.tel-item {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-top: var(--sp-4);
-  padding: var(--sp-3) var(--sp-4);
-  border-radius: var(--r-md);
-  background: var(--fail-soft);
-  border: 1px solid rgba(248, 81, 73, 0.25);
-  font-size: var(--text-xs);
-  color: var(--fail);
 }
-.detect-root p { font-size: var(--text-xs); color: var(--ink-secondary); }
+.tel-label {
+  font-size: 10px;
+  color: var(--ink-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.tel-value {
+  font-size: var(--text-sm);
+  color: var(--ink-secondary);
+  font-weight: 500;
+}
+.tel-success { color: var(--success); }
 
-.detect-list { display: flex; flex-direction: column; gap: var(--sp-4); justify-content: center; }
-.detect-item {
+/* ============================================================
+   Chapter 02 — Detection visualization
+   ============================================================ */
+
+.detect-viz {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  overflow: hidden;
+  margin-bottom: var(--sp-6);
+}
+.detect-viz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border-faint);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+}
+.detect-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  padding: var(--sp-5) var(--sp-4);
+}
+.detect-viz-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--border-faint);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+.detect-root-cause {
+  color: var(--fail);
+  opacity: 0.8;
+}
+
+/* Detection features */
+.detect-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-4);
+}
+.detect-feature {
   display: flex;
   gap: var(--sp-3);
   padding: var(--sp-4);
@@ -559,73 +642,118 @@ main, header, footer { position: relative; z-index: 1; }
   background: var(--surface);
   transition: all 0.3s var(--ease-out);
 }
-.detect-item:hover {
+.detect-feature:hover {
   border-color: var(--accent-border);
-  transform: translateX(4px);
-  box-shadow: -4px 0 20px var(--glow-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--glow-accent);
 }
-.detect-icon {
-  width: 30px; height: 30px; flex: none;
+.detect-feature-icon {
+  width: 32px; height: 32px; flex: none;
   display: flex; align-items: center; justify-content: center;
   border-radius: var(--r-sm);
   background: var(--accent-soft);
   color: var(--accent);
   font-size: var(--text-md);
 }
-.detect-item-title { font-size: var(--text-sm); font-weight: 500; }
-.detect-item-sub { font-size: var(--text-xs); color: var(--ink-muted); margin-top: 2px; line-height: 1.5; }
+.detect-feature-title { font-size: var(--text-sm); font-weight: 500; margin-bottom: 4px; }
+.detect-feature-sub { font-size: var(--text-xs); color: var(--ink-muted); line-height: 1.5; }
 
-/* ---------- observability ---------- */
+/* ============================================================
+   Chapter 04 — Observability console
+   ============================================================ */
 
-.obs-grid {
-  display: grid;
-  grid-template-columns: 0.8fr 1.1fr 1.1fr;
-  gap: var(--sp-4);
-  align-items: stretch;
-}
-.obs-col { display: flex; flex-direction: column; gap: var(--sp-4); }
-.obs-stat {
-  flex: 1;
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  background: var(--surface);
-  padding: var(--sp-5);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  transition: all 0.3s var(--ease-out);
-}
-.obs-stat:hover {
-  border-color: var(--accent-border);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 32px var(--glow-accent);
-}
-.obs-stat-value { font-size: 40px; font-weight: 600; letter-spacing: var(--tracking-tight); color: var(--ink); }
-.obs-stat-value small { font-size: 18px; color: var(--ink-muted); font-weight: 500; margin-left: 2px; }
-.obs-stat-label { color: var(--ink-muted); font-size: var(--text-xs); margin-top: var(--sp-1); }
-
-.obs-tile {
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+.obs-console {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
   background: var(--surface);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.3s var(--ease-out);
 }
-.obs-tile:hover {
-  border-color: var(--accent-border);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 32px var(--glow-accent);
-}
-.obs-tile-head {
+.obs-console-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-4);
   border-bottom: 1px solid var(--border-faint);
   font-size: var(--text-xs);
+  color: var(--ink-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.obs-console-body {
+  padding: var(--sp-6) var(--sp-5);
+}
+
+/* Main metric */
+.obs-main-metric {
+  text-align: center;
+  margin-bottom: var(--sp-5);
+}
+.obs-main-val {
+  font-size: clamp(48px, 8vw, 80px);
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.03em;
+}
+.obs-main-unit {
+  font-size: clamp(24px, 4vw, 40px);
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+.obs-main-label {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  margin-top: var(--sp-2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Mini graph */
+.obs-mini-graph {
+  margin: var(--sp-5) 0;
+  border: 1px solid var(--border-faint);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+.obs-mini-graph svg {
+  width: 100%;
+  height: 80px;
+  display: block;
+}
+
+/* Stats row */
+.obs-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-4);
+  text-align: center;
+}
+.obs-mini-val {
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 600;
+  color: var(--ink);
+}
+.obs-mini-unit {
+  font-size: var(--text-md);
+  color: var(--ink-muted);
+}
+.obs-mini-label {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  margin-top: 4px;
+}
+
+/* Code preview */
+.obs-code-preview {
+  border-top: 1px solid var(--border-faint);
+}
+.obs-code-head {
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border-faint);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
 }
 .obs-code {
   margin: 0;
@@ -640,10 +768,37 @@ main, header, footer { position: relative; z-index: 1; }
 .tok-v { color: var(--ink-secondary); }
 .tok-s { color: var(--success); }
 
-/* ---------- integrations ---------- */
+/* ============================================================
+   Chapter 05 — Connected / data flow
+   ============================================================ */
 
-.int-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
-.int-card {
+.flow-viz {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  overflow: hidden;
+  margin-bottom: var(--sp-6);
+}
+.flow-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  padding: var(--sp-5) var(--sp-4);
+}
+.flow-signal {
+  opacity: 0;
+}
+.flow-viz.in .flow-signal {
+  opacity: 0.8;
+}
+
+/* Integration cards */
+.flow-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-4);
+}
+.flow-card {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   background: var(--surface);
@@ -652,7 +807,7 @@ main, header, footer { position: relative; z-index: 1; }
   position: relative;
   overflow: hidden;
 }
-.int-card::before {
+.flow-card::before {
   content: '';
   position: absolute;
   top: 0;
@@ -663,16 +818,16 @@ main, header, footer { position: relative; z-index: 1; }
   opacity: 0;
   transition: opacity 0.3s var(--ease-out);
 }
-.int-card:hover {
+.flow-card:hover {
   border-color: var(--accent-border);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px var(--glow-accent);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px var(--glow-accent);
 }
-.int-card:hover::before { opacity: 1; }
-.int-idx { color: var(--accent); font-size: var(--text-xs); margin-bottom: var(--sp-3); }
-.int-card ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
-.int-card li { color: var(--ink-secondary); font-size: var(--text-sm); padding-left: var(--sp-4); position: relative; }
-.int-card li::before {
+.flow-card:hover::before { opacity: 1; }
+.flow-card-idx { color: var(--accent); font-size: var(--text-xs); margin-bottom: var(--sp-3); letter-spacing: 0.08em; text-transform: uppercase; }
+.flow-card ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.flow-card li { color: var(--ink-secondary); font-size: var(--text-sm); padding-left: var(--sp-4); position: relative; }
+.flow-card li::before {
   content: "";
   position: absolute;
   left: 0; top: 7px;
@@ -682,42 +837,176 @@ main, header, footer { position: relative; z-index: 1; }
   opacity: 0.7;
 }
 
-/* ---------- CTA ---------- */
+/* ============================================================
+   Chapter 03 — Trace tree
+   ============================================================ */
 
-.cta {
-  text-align: center;
-  padding: clamp(88px, 14vh, 160px) clamp(16px, 5vw, 48px);
-  position: relative;
+.trace-viz {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
   overflow: hidden;
 }
-.cta-glow {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(77, 141, 255, 0.08) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 40% at 30% 60%, rgba(77, 141, 255, 0.05) 0%, transparent 60%);
-  pointer-events: none;
+.trace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border-faint);
 }
-.cta::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 400px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent-border), transparent);
+.trace-run {
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  letter-spacing: 0.08em;
 }
-.cta h2 {
+.trace-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-6);
+  padding: var(--sp-5) var(--sp-6);
+}
+
+/* Trace tree */
+.trace-tree {
+  display: flex;
+  flex-direction: column;
+}
+.trace-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  opacity: 0.3;
+  transition: opacity 0.4s var(--ease-out);
+}
+.trace-item--active {
+  opacity: 1;
+}
+.trace-dot {
+  width: 10px; height: 10px;
+  border-radius: var(--r-full);
+  background: var(--border-strong);
+  flex-shrink: 0;
+  margin-top: 4px;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.trace-item--active .trace-dot {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--glow-accent);
+}
+.trace-dot--success {
+  background: var(--success) !important;
+  box-shadow: 0 0 8px var(--glow-success) !important;
+}
+.trace-line {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin-left: 4.5px;
+  margin-top: 4px;
+}
+.trace-item--active .trace-line {
+  background: var(--accent-border);
+}
+.trace-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.trace-stage {
+  font-size: var(--text-xs);
+  color: var(--ink-secondary);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+.trace-val {
+  font-size: 10px;
+  color: var(--ink-muted);
+}
+
+/* Trace telemetry */
+.trace-telemetry {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--sp-5);
+}
+.trace-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.trace-stat-val {
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 600;
+  color: var(--ink);
+}
+.trace-stat-unit {
+  font-size: var(--text-md);
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+.trace-stat-label {
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   Chapter 06 — CTA
+   ============================================================ */
+
+.chapter--cta {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cta-terminal {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  overflow: hidden;
+  margin-bottom: clamp(32px, 5vh, 56px);
+  min-width: 320px;
+  max-width: 400px;
+}
+.cta-terminal-head {
+  padding: var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--border-faint);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  letter-spacing: 0.08em;
+}
+.cta-terminal-body {
+  padding: var(--sp-5) var(--sp-4);
+}
+.cta-terminal-status {
+  font-size: var(--text-lg);
+  color: var(--ink);
+  font-weight: 600;
+  margin-bottom: var(--sp-3);
+  letter-spacing: 0.05em;
+}
+.cta-terminal-check {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--text-sm);
+}
+
+.cta-headline {
   font-size: clamp(32px, 5vw, 52px);
   letter-spacing: var(--tracking-tight);
   line-height: 1.08;
   margin-bottom: var(--sp-4);
-  position: relative;
 }
-.cta-sub { color: var(--ink-muted); font-size: var(--text-lg); margin-bottom: var(--sp-6); position: relative; }
-.cta .btn { position: relative; }
-.cta-foot { color: var(--ink-faint); font-size: var(--text-xs); margin-top: var(--sp-6); position: relative; }
+.cta-sub {
+  color: var(--ink-muted);
+  font-size: var(--text-lg);
+  margin-bottom: var(--sp-6);
+}
 
 /* ---------- footer ---------- */
 
@@ -797,20 +1086,22 @@ main, header, footer { position: relative; z-index: 1; }
 
 /* tablet */
 @media (max-width: 1080px) {
-  .story { grid-template-columns: 1fr; }
-  .story-visual { position: static; order: 2; }
-  .obs-grid { grid-template-columns: 1fr 1fr; }
-  .obs-col { grid-row: span 1; }
-  .detect-grid { grid-template-columns: 1fr; }
+  .detect-features { grid-template-columns: 1fr 1fr; }
+  .trace-body { grid-template-columns: 1fr; gap: var(--sp-5); }
 }
 
 /* mobile */
 @media (max-width: 760px) {
   .nav-links { display: none; }
-  .obs-grid { grid-template-columns: 1fr; }
-  .int-grid { grid-template-columns: 1fr; }
-  .story-copy { gap: var(--sp-6); }
   .vis-meta { display: none; }
+  .detect-features { grid-template-columns: 1fr; }
+  .flow-cards { grid-template-columns: 1fr; }
+  .obs-stats-row { grid-template-columns: 1fr; gap: var(--sp-5); }
+  .telemetry-bar { gap: var(--sp-4); }
+  .trace-body { grid-template-columns: 1fr; }
+  .pipe-info-inner { flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
+  .detect-viz-footer { flex-direction: column; align-items: flex-start; }
+  .flow-svg { padding: var(--sp-4) 0; }
 
   .hero-cinematic {
     min-height: 100svh;
