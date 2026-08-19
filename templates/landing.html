@@ -7,7 +7,7 @@
   <title>CerebrOps — Ship code without the ceremony</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
@@ -41,9 +41,9 @@
     </div>
   </header>
 
-  <!-- ============ HERO ============ -->
+  <!-- ============ CINEMATIC HERO ============ -->
   <main id="top">
-    <section class="hero">
+    <section class="hero-cinematic">
       <!-- cinematic full-bleed background video -->
       <div class="hero-bg" aria-hidden="true">
         <video class="hero-video" autoplay muted loop playsinline preload="metadata" tabindex="-1">
@@ -51,81 +51,90 @@
         </video>
         <div class="hero-scrim"></div>
       </div>
-      <div class="hero-inner">
-        <div class="hero-copy">
-          <p class="eyebrow reveal">AI-powered deployment intelligence</p>
-          <h1 class="reveal split">
-            Ship code without
-            <span class="grad serif-it">the ceremony.</span>
-          </h1>
-          <p class="hero-sub reveal">
-            Every commit travels commit&nbsp;→ build&nbsp;→ test&nbsp;→ security&nbsp;→ deploy&nbsp;→&nbsp;production.
-            CerebrOps watches the whole journey, learns your normal, and tells you
-            <em>which deploy</em> broke things when something slips.
-          </p>
-          <div class="hero-cta reveal">
-            <a class="btn btn-primary btn-lg" href="/dashboard">Open the dashboard</a>
-            <a class="btn btn-lg" href="#product">See how it works</a>
-          </div>
-          <div class="hero-meta reveal">
-            <span class="chip"><span class="dot dot-success"></span> pipeline webhook live</span>
-            <span class="chip">Prometheus &amp; Grafana native</span>
-            <span class="chip">runs in your cluster</span>
-          </div>
-        </div>
 
-        <!-- signature: live pipeline -->
-        <div class="hero-visual reveal" id="hero-visual">
-          <div class="vis-head">
-            <span class="vis-title">
-              <span class="dot dot-run" id="vis-live-dot"></span>
-              cerebrops-core · main
-            </span>
-            <span class="vis-meta mono caret" id="vis-meta">run-1842 · 42s</span>
-          </div>
-          <div class="pipeline" id="hero-pipeline" role="img" aria-label="Animated pipeline: commit, build, test, security, deploy, production">
-            <div class="pipeline-track" aria-hidden="true">
-              <div class="rail"></div>
-              <div class="pulse" id="pulse"></div>
-              <div class="stage" data-stage="commit">
-                <span class="stage-icon">git</span>
-                <span class="stage-name">Commit</span>
-                <span class="stage-time mono" data-time>—</span>
-              </div>
-              <div class="stage" data-stage="build">
-                <span class="stage-icon">b</span>
-                <span class="stage-name">Build</span>
-                <span class="stage-time mono" data-time>—</span>
-              </div>
-              <div class="stage" data-stage="test">
-                <span class="stage-icon">t</span>
-                <span class="stage-name">Test</span>
-                <span class="stage-time mono" data-time>—</span>
-              </div>
-              <div class="stage" data-stage="security">
-                <span class="stage-icon">s</span>
-                <span class="stage-name">Security</span>
-                <span class="stage-time mono" data-time>—</span>
-              </div>
-              <div class="stage" data-stage="deploy">
-                <span class="stage-icon">d</span>
-                <span class="stage-name">Deploy</span>
-                <span class="stage-time mono" data-time>—</span>
-              </div>
-              <div class="stage" data-stage="prod">
-                <span class="stage-icon">★</span>
-                <span class="stage-name">Production</span>
-                <span class="stage-time mono" data-time>—</span>
-              </div>
+      <!-- headline: center-right -->
+      <div class="hero-cinema-content">
+        <h1 class="hero-cinema-title" id="hero-cinema-title">
+          Ship code without<br>
+          <span class="serif-it">the ceremony.</span>
+        </h1>
+      </div>
+
+      <!-- giant wordmark -->
+      <div class="hero-wordmark-wrap">
+        <h2 class="hero-wordmark" id="hero-wordmark">CerebrOps</h2>
+      </div>
+    </section>
+
+    <!-- ============ POST-HERO INTRO (reveals on scroll) ============ -->
+    <section class="hero-intro" id="hero-intro">
+      <p class="eyebrow reveal">AI-powered deployment intelligence</p>
+      <p class="hero-intro-sub reveal">
+        Every commit travels commit&nbsp;→ build&nbsp;→ test&nbsp;→ security&nbsp;→ deploy&nbsp;→&nbsp;production.
+        CerebrOps watches the whole journey, learns your normal, and tells you
+        <em>which deploy</em> broke things when something slips.
+      </p>
+      <div class="hero-intro-cta reveal">
+        <a class="btn btn-primary btn-lg" href="/dashboard">Open the dashboard</a>
+        <a class="btn btn-lg" href="#product">See how it works</a>
+      </div>
+      <div class="hero-intro-meta reveal">
+        <span class="chip"><span class="dot dot-success"></span> pipeline webhook live</span>
+        <span class="chip">Prometheus &amp; Grafana native</span>
+        <span class="chip">runs in your cluster</span>
+      </div>
+
+      <!-- signature: live pipeline -->
+      <div class="hero-visual reveal" id="hero-visual">
+        <div class="vis-head">
+          <span class="vis-title">
+            <span class="dot dot-run" id="vis-live-dot"></span>
+            cerebrops-core · main
+          </span>
+          <span class="vis-meta mono caret" id="vis-meta">run-1842 · 42s</span>
+        </div>
+        <div class="pipeline" id="hero-pipeline" role="img" aria-label="Animated pipeline: commit, build, test, security, deploy, production">
+          <div class="pipeline-track" aria-hidden="true">
+            <div class="rail"></div>
+            <div class="pulse" id="pulse"></div>
+            <div class="stage" data-stage="commit">
+              <span class="stage-icon">git</span>
+              <span class="stage-name">Commit</span>
+              <span class="stage-time mono" data-time>—</span>
+            </div>
+            <div class="stage" data-stage="build">
+              <span class="stage-icon">b</span>
+              <span class="stage-name">Build</span>
+              <span class="stage-time mono" data-time>—</span>
+            </div>
+            <div class="stage" data-stage="test">
+              <span class="stage-icon">t</span>
+              <span class="stage-name">Test</span>
+              <span class="stage-time mono" data-time>—</span>
+            </div>
+            <div class="stage" data-stage="security">
+              <span class="stage-icon">s</span>
+              <span class="stage-name">Security</span>
+              <span class="stage-time mono" data-time>—</span>
+            </div>
+            <div class="stage" data-stage="deploy">
+              <span class="stage-icon">d</span>
+              <span class="stage-name">Deploy</span>
+              <span class="stage-time mono" data-time>—</span>
+            </div>
+            <div class="stage" data-stage="prod">
+              <span class="stage-icon">★</span>
+              <span class="stage-name">Production</span>
+              <span class="stage-time mono" data-time>—</span>
             </div>
           </div>
-          <div class="vis-foot">
-            <span class="mono" id="vis-commit">7d2f9a1 · fix: backpressure on webhook ingress</span>
-            <span class="vis-check" id="vis-check">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-              passed
-            </span>
-          </div>
+        </div>
+        <div class="vis-foot">
+          <span class="mono" id="vis-commit">7d2f9a1 · fix: backpressure on webhook ingress</span>
+          <span class="vis-check" id="vis-check">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            passed
+          </span>
         </div>
       </div>
     </section>
@@ -398,6 +407,8 @@
     <p class="footer-dev mono">built by <a href="https://www.anshulbari.me/" target="_blank" rel="noopener noreferrer">anshul bari</a></p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrambleTextPlugin.min.js"></script>
   <script src="{{ url_for('static', filename='js/landing.js') }}"></script>
 </body>
 </html>

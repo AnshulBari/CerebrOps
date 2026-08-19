@@ -784,7 +784,23 @@ def api_v1_pipeline_events():
     return api_ok({'event_id': event_id, 'recorded': True, 'status': status}, 202)
 
 
+def _seed_demo_user():
+    """Create a default admin account if none exists."""
+    email = 'admin@cerebrops.dev'
+    try:
+        if not store.get_user_by_email(email):
+            store.create_user(
+                email=email,
+                password_hash=generate_password_hash('admin123'),
+                name='Admin',
+            )
+            logger.info('Seeded demo user: admin@cerebrops.dev / admin123')
+    except Exception:
+        logger.exception('Failed to seed demo user')
+
+
 if __name__ == '__main__':
     os.makedirs(log_dir, exist_ok=True)
+    _seed_demo_user()
     logger.info("Starting CerebrOps application")
     app.run(host='0.0.0.0', port=5000, debug=False)

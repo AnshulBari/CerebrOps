@@ -7,6 +7,129 @@
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ============================================================
+     Cinematic hero — entrance animation + scroll parallax
+     ============================================================ */
+
+  /* --- wordmark: GSAP ScrambleTextPlugin --- */
+  var wordmark = document.getElementById('hero-wordmark');
+  if (wordmark && typeof gsap !== 'undefined' && typeof ScrambleTextPlugin !== 'undefined') {
+    gsap.registerPlugin(ScrambleTextPlugin);
+    // store the final text
+    var wmText = wordmark.textContent.trim();
+    // start with scrambled text
+    wordmark.textContent = wmText;
+    // set initial state
+    wordmark.classList.add('revealed');
+    // create scramble animation
+    gsap.fromTo(wordmark, {
+      scrambleText: {
+        text: wmText,
+        chars: 'uppercase',
+        revealDelay: 0.5,
+        speed: 0.8,
+        delimiter: ''
+      },
+      opacity: 0,
+      y: 20
+    }, {
+      duration: 2.0,
+      scrambleText: {
+        text: wmText,
+        chars: 'uppercase',
+        revealDelay: 0.5,
+        speed: 0.8,
+        delimiter: ''
+      },
+      opacity: 0.92,
+      y: 0,
+      ease: 'power2.out',
+      delay: 0.8
+    });
+  }
+
+  /* --- headline: no JS splitting needed, just add .revealed class --- */
+  var cinemaTitle = document.getElementById('hero-cinema-title');
+
+  /* --- entrance sequence --- */
+  if (!reduced) {
+    setTimeout(function () {
+      if (cinemaTitle) cinemaTitle.classList.add('revealed');
+    }, 300);
+    // wordmark handled by GSAP above if available
+    if (typeof gsap === 'undefined' || typeof ScrambleTextPlugin === 'undefined') {
+      setTimeout(function () {
+        if (wordmark) wordmark.classList.add('revealed');
+      }, 700);
+    }
+  } else {
+    if (cinemaTitle) cinemaTitle.classList.add('revealed');
+    if (wordmark) wordmark.classList.add('revealed');
+  }
+
+  /* --- navbar: hide on hero, show on scroll --- */
+  var nav = document.querySelector('.landing-nav');
+  if (nav && heroSection) {
+    var navTicking = false;
+    function checkNav() {
+      if (navTicking) return;
+      navTicking = true;
+      requestAnimationFrame(function () {
+        var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        var heroH = heroSection.offsetHeight;
+        if (scrollY > heroH * 0.6) {
+          nav.classList.add('visible');
+        } else {
+          nav.classList.remove('visible');
+        }
+        navTicking = false;
+      });
+    }
+    window.addEventListener('scroll', checkNav, { passive: true });
+    checkNav();
+  }
+
+  /* --- scroll parallax --- */
+  var heroSection = document.querySelector('.hero-cinematic');
+  var cinemaContent = document.querySelector('.hero-cinema-content');
+  var wordmarkWrap = document.querySelector('.hero-wordmark-wrap');
+
+  if (heroSection && !reduced) {
+    var ticking = false;
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        var heroH = heroSection.offsetHeight;
+        if (heroH <= 0) { ticking = false; return; }
+        var progress = Math.min(1, Math.max(0, scrollY / heroH));
+
+        // headline moves up, fades
+        if (cinemaContent) {
+          var isMobile = window.innerWidth <= 760;
+          var baseTx = isMobile ? 'translateX(-50%) ' : '';
+          cinemaContent.style.transform = baseTx + 'translateY(calc(-55% + ' + (-progress * 80) + 'px))';
+          cinemaContent.style.opacity = String(1 - progress * 1.2);
+        }
+        // wordmark moves down, fades
+        if (wordmarkWrap) {
+          wordmarkWrap.style.transform = 'translateY(' + (progress * 50) + 'px)';
+          wordmarkWrap.style.opacity = String(0.9 - progress * 1.1);
+        }
+        // video dims slightly
+        var vid = heroSection.querySelector('.hero-video');
+        if (vid) {
+          vid.style.filter = 'brightness(' + (1.12 - progress * 0.35) + ') saturate(1.06)';
+        }
+
+        ticking = false;
+      });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+
   /* ---------- word-level split for primary headlines ---------- */
   function splitWords(root) {
     var counter = 0;
