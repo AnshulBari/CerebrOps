@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="CerebrOps — AI-powered deployment intelligence. Watch every commit travel from build to production, and let anomaly detection find the deploy that broke it.">
   <title>CerebrOps — Ship code without the ceremony</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/logo.svg') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -19,10 +20,7 @@
   <header class="landing-nav">
     <a class="brand" href="#top" aria-label="CerebrOps home">
       <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none">
-          <rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.6"/>
-          <path d="M8 12h2.2l1.2-3 2.2 6 1.4-3H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="26" height="26">
       </span>
       <span class="brand-name">CerebrOps</span>
     </a>
@@ -66,26 +64,31 @@
       </div>
     </section>
 
-    <!-- ============ POST-HERO INTRO (reveals on scroll) ============ -->
+    <!-- ============ POST-HERO INTRO ============ -->
     <section class="hero-intro" id="hero-intro">
-      <p class="eyebrow reveal">AI-powered deployment intelligence</p>
-      <p class="hero-intro-sub reveal">
-        Every commit travels commit&nbsp;→ build&nbsp;→ test&nbsp;→ security&nbsp;→ deploy&nbsp;→&nbsp;production.
-        CerebrOps watches the whole journey, learns your normal, and tells you
-        <em>which deploy</em> broke things when something slips.
-      </p>
-      <div class="hero-intro-cta reveal">
-        <a class="btn btn-primary btn-lg" href="/dashboard">Open the dashboard</a>
-        <a class="btn btn-lg" href="#product">See how it works</a>
-      </div>
-      <div class="hero-intro-meta reveal">
-        <span class="chip"><span class="dot dot-success"></span> pipeline webhook live</span>
-        <span class="chip">Prometheus &amp; Grafana native</span>
-        <span class="chip">runs in your cluster</span>
+      <div class="intro-content">
+        <p class="eyebrow gsap-reveal">AI-powered deployment intelligence</p>
+        <h2 class="intro-headline gsap-reveal">
+          Every commit travels<br>
+          <span class="mono accent-text">commit → build → test → security → deploy → production</span>
+        </h2>
+        <p class="intro-sub gsap-reveal">
+          CerebrOps watches the whole journey, learns your normal, and tells you
+          <em>which deploy</em> broke things when something slips.
+        </p>
+        <div class="intro-cta gsap-reveal">
+          <a class="btn btn-primary btn-lg" href="/dashboard">Open the dashboard</a>
+          <a class="btn btn-lg" href="#product">See how it works</a>
+        </div>
+        <div class="intro-meta gsap-reveal">
+          <span class="chip"><span class="dot dot-success"></span> pipeline webhook live</span>
+          <span class="chip">Prometheus &amp; Grafana native</span>
+          <span class="chip">runs in your cluster</span>
+        </div>
       </div>
 
       <!-- signature: live pipeline -->
-      <div class="hero-visual reveal" id="hero-visual">
+      <div class="hero-visual gsap-reveal" id="hero-visual">
         <div class="vis-head">
           <span class="vis-title">
             <span class="dot dot-run" id="vis-live-dot"></span>
@@ -141,23 +144,23 @@
 
     <!-- ============ LOGO STRIP ============ -->
     <section class="logo-strip" aria-label="Integrations">
-      <p class="strip-label reveal">Plugs into the pipeline you already run</p>
-      <div class="strip-row reveal reveal-d1">
-        <span class="strip-item mono">GitHub Actions</span>
-        <span class="strip-item mono">GitLab CI</span>
-        <span class="strip-item mono">Jenkins</span>
-        <span class="strip-item mono">Prometheus</span>
-        <span class="strip-item mono">Grafana</span>
-        <span class="strip-item mono">Kubernetes</span>
-        <span class="strip-item mono">Slack</span>
+      <p class="strip-label gsap-reveal">Plugs into the pipeline you already run</p>
+      <div class="strip-row">
+        <span class="strip-item mono gsap-reveal" style="--i:0">GitHub Actions</span>
+        <span class="strip-item mono gsap-reveal" style="--i:1">GitLab CI</span>
+        <span class="strip-item mono gsap-reveal" style="--i:2">Jenkins</span>
+        <span class="strip-item mono gsap-reveal" style="--i:3">Prometheus</span>
+        <span class="strip-item mono gsap-reveal" style="--i:4">Grafana</span>
+        <span class="strip-item mono gsap-reveal" style="--i:5">Kubernetes</span>
+        <span class="strip-item mono gsap-reveal" style="--i:6">Slack</span>
       </div>
     </section>
 
     <!-- ============ PRODUCT / SCROLL STORY ============ -->
     <section class="section" id="product">
-      <div class="section-head reveal">
+      <div class="section-head gsap-reveal">
         <p class="eyebrow">From commit to production</p>
-        <h2 class="split">One journey. <span class="serif-it">Zero guesswork.</span></h2>
+        <h2>One journey. <span class="serif-it">Zero guesswork.</span></h2>
         <p class="section-sub">A single surface for everything that happens to your code after it leaves your laptop.</p>
       </div>
       <div class="story" id="story">
@@ -227,13 +230,13 @@
 
     <!-- ============ DETECTION ============ -->
     <section class="section alt" id="detection">
-      <div class="section-head left reveal">
+      <div class="section-head left gsap-reveal">
         <p class="eyebrow">AI anomaly detection</p>
-        <h2 class="split">It knows what normal looks like.<br>It tells you when <span class="serif-it">normal changes.</span></h2>
+        <h2>It knows what normal looks like.<br>It tells you when <span class="serif-it">normal changes.</span></h2>
         <p class="section-sub">Forecast-residual detection learns your per-metric weekly profile and flags real deviations — then traces them back to the deploy.</p>
       </div>
       <div class="detect-grid">
-        <div class="detect-card reveal">
+        <div class="detect-card gsap-reveal">
           <div class="detect-top">
             <span class="detect-badge badge badge-run"><span class="dot dot-run"></span> anomaly · forecast-residual</span>
             <span class="detect-time mono">2 min ago</span>
@@ -260,29 +263,29 @@
             <p class="mono">run-1841 · gateway (main@deadbeef) 1.1m before</p>
           </div>
         </div>
-        <div class="detect-list reveal reveal-d2">
-          <div class="detect-item">
+        <div class="detect-list">
+          <div class="detect-item gsap-reveal" style="--i:0">
             <span class="detect-icon">↯</span>
             <div class="grow">
               <p class="detect-item-title">Seasonal-naive forecasting</p>
               <p class="detect-item-sub">Hour-of-week profiles per metric, robust MAD thresholds. No black box.</p>
             </div>
           </div>
-          <div class="detect-item">
+          <div class="detect-item gsap-reveal" style="--i:1">
             <span class="detect-icon">◎</span>
             <div class="grow">
               <p class="detect-item-title">Deploy-correlated root cause</p>
               <p class="detect-item-sub">Every alert carries the deploy that most likely caused it — branch and commit included.</p>
             </div>
           </div>
-          <div class="detect-item">
+          <div class="detect-item gsap-reveal" style="--i:2">
             <span class="detect-icon">◇</span>
             <div class="grow">
               <p class="detect-item-title">Drift-based retraining</p>
               <p class="detect-item-sub">Models retrain when the data drifts, not on a fixed 24-hour timer.</p>
             </div>
           </div>
-          <div class="detect-item">
+          <div class="detect-item gsap-reveal" style="--i:3">
             <span class="detect-icon">▣</span>
             <div class="grow">
               <p class="detect-item-title">Alert to Slack, runbook attached</p>
@@ -295,27 +298,27 @@
 
     <!-- ============ OBSERVABILITY ============ -->
     <section class="section" id="observability">
-      <div class="section-head reveal">
+      <div class="section-head gsap-reveal">
         <p class="eyebrow">Observability</p>
-        <h2 class="split">Metrics your SRE can <span class="serif-it">actually use.</span></h2>
+        <h2>Metrics your SRE can <span class="serif-it">actually use.</span></h2>
         <p class="section-sub">Prometheus-native metrics, error budgets, and burn alerts — plus the SQLite-backed store that keeps working when everything else hiccups.</p>
       </div>
       <div class="obs-grid">
-        <div class="obs-col reveal">
-          <div class="obs-stat">
+        <div class="obs-col">
+          <div class="obs-stat gsap-reveal" style="--i:0">
             <p class="obs-stat-value num" data-count="99.9">99.9<small>%</small></p>
             <p class="obs-stat-label">30-day availability SLO</p>
           </div>
-          <div class="obs-stat">
+          <div class="obs-stat gsap-reveal" style="--i:1">
             <p class="obs-stat-value num" data-count="14.4">14.4<small>×</small></p>
             <p class="obs-stat-label">fast-burn page threshold</p>
           </div>
-          <div class="obs-stat">
+          <div class="obs-stat gsap-reveal" style="--i:2">
             <p class="obs-stat-value num" data-count="3">3<small>tier</small></p>
             <p class="obs-stat-label">escalation runbooks</p>
           </div>
         </div>
-        <div class="obs-tile reveal reveal-d1">
+        <div class="obs-tile gsap-reveal" style="--i:0">
           <div class="obs-tile-head">
             <span class="mono">prometheus-rules.yml</span>
             <span class="badge badge-success">error budget 12.6% left</span>
@@ -328,7 +331,7 @@
   <span class="tok-k">annotations:</span>
     <span class="tok-k">runbook:</span> <span class="tok-v">/runbooks/slo-burn</span></code></pre>
         </div>
-        <div class="obs-tile reveal reveal-d2">
+        <div class="obs-tile gsap-reveal" style="--i:1">
           <div class="obs-tile-head">
             <span class="mono">/metrics-prom</span>
             <span class="badge badge-accent">scraped every 15s</span>
@@ -343,13 +346,13 @@
 
     <!-- ============ INTEGRATIONS ============ -->
     <section class="section alt" id="integrations">
-      <div class="section-head reveal">
+      <div class="section-head gsap-reveal">
         <p class="eyebrow">Integrations</p>
-        <h2 class="split">One webhook. <span class="serif-it">Everything connected.</span></h2>
+        <h2>One webhook. <span class="serif-it">Everything connected.</span></h2>
         <p class="section-sub">CerebrOps runs where your pipeline runs — in your cluster, behind your firewall, owned by you.</p>
       </div>
       <div class="int-grid">
-        <div class="int-card reveal">
+        <div class="int-card gsap-reveal" style="--i:0">
           <p class="int-idx mono">CI / CD</p>
           <ul>
             <li>GitHub Actions &amp; GitLab CI webhooks</li>
@@ -357,7 +360,7 @@
             <li>Commit, branch, author attribution</li>
           </ul>
         </div>
-        <div class="int-card reveal reveal-d1">
+        <div class="int-card gsap-reveal" style="--i:1">
           <p class="int-idx mono">Telemetry</p>
           <ul>
             <li>Prometheus text-format endpoint</li>
@@ -365,7 +368,7 @@
             <li>SLO recording &amp; burn alerts</li>
           </ul>
         </div>
-        <div class="int-card reveal reveal-d2">
+        <div class="int-card gsap-reveal" style="--i:2">
           <p class="int-idx mono">Delivery</p>
           <ul>
             <li>Slack alerts with runbook links</li>
@@ -378,9 +381,10 @@
 
     <!-- ============ CTA ============ -->
     <section class="cta">
-      <h2 class="reveal split">Your next deploy deserves<br><span class="serif-it">a witness.</span></h2>
-      <p class="cta-sub reveal">Open the dashboard and see the journey from commit to production — live.</p>
-      <div class="reveal">
+      <div class="cta-glow" aria-hidden="true"></div>
+      <h2 class="gsap-reveal">Your next deploy deserves<br><span class="serif-it">a witness.</span></h2>
+      <p class="cta-sub gsap-reveal">Open the dashboard and see the journey from commit to production — live.</p>
+      <div class="gsap-reveal">
         <a class="btn btn-primary btn-lg" href="/dashboard">Open the dashboard</a>
       </div>
       <p class="cta-foot mono">cerebrops · commit → build → test → security → deploy → production</p>
@@ -391,7 +395,7 @@
     <div class="footer-inner">
       <a class="brand" href="#top">
         <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.6"/><path d="M8 12h2.2l1.2-3 2.2 6 1.4-3H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="26" height="26">
         </span>
         <span class="brand-name">CerebrOps</span>
       </a>

@@ -168,13 +168,13 @@
   document.querySelectorAll('.split').forEach(splitWords);
 
   /* ---------- reveal on scroll ---------- */
-  var revealEls = document.querySelectorAll('.reveal, .split');
+  var revealEls = document.querySelectorAll('.reveal, .split, .gsap-reveal');
   if ('IntersectionObserver' in window) {
     var revealObs = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (e.isIntersecting) { e.target.classList.add('in'); revealObs.unobserve(e.target); }
       });
-    }, { threshold: 0.12 });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
     revealEls.forEach(function (el) { revealObs.observe(el); });
   } else {
     revealEls.forEach(function (el) { el.classList.add('in'); });
