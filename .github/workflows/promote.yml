@@ -107,5 +107,4 @@ jobs:
           - **Image digest:** `${{ steps.digest.outputs.digest }}`
 
           Merge to let ArgoCD sync this digest to the `${{ inputs.environment }}` overlay.
-        labels:
-        - promote
+        labels: promote
