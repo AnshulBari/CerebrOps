@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="api-key" content="">
+  <title>CerebrOps — Dashboard (Demo)</title>
+  <link rel="icon" type="image/svg+xml" href="./static/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/tokens.css">
+  <link rel="stylesheet" href="./static/css/base.css">
+  <link rel="stylesheet" href="./static/css/app.css">
+</head>
+<body>
+  <div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar" aria-label="Primary">
+      <a class="side-brand" href="./index.html" title="Back to cerebrops home">
+        <span class="brand-mark" aria-hidden="true">
+          <img src="./static/img/logo.svg" alt="" width="26" height="26">
+        </span>
+        <span class="side-brand-name">CerebrOps</span>
+        <span class="side-env chip" id="side-env">demo</span>
+      </a>
+
+      <nav class="side-nav" id="side-nav">
+        <p class="side-label">Workspace</p>
+        <a class="side-link active" href="#/overview" data-route="overview"><span>Overview</span></a>
+        <a class="side-link" href="#/pipelines" data-route="pipelines"><span>Pipelines</span></a>
+        <a class="side-link" href="#/deployments" data-route="deployments"><span>Deployments</span></a>
+        <a class="side-link" href="#/anomalies" data-route="anomalies"><span>Anomalies</span></a>
+        <a class="side-link" href="#/alerts" data-route="alerts"><span>Alerts</span><span class="side-count" id="alert-count" hidden></span></a>
+        <p class="side-label">Manage</p>
+        <a class="side-link" href="#/environments" data-route="environments"><span>Environments</span></a>
+        <a class="side-link" href="#/analytics" data-route="analytics"><span>Analytics</span></a>
+        <a class="side-link" href="#/settings" data-route="settings"><span>Settings</span></a>
+      </nav>
+
+      <div class="side-foot">
+        <div class="side-status">
+          <span class="dot dot-success" id="side-dot"></span>
+          <span id="side-status-text" class="mono">system · healthy</span>
+        </div>
+        <button class="side-collapse" id="side-collapse" title="Collapse sidebar" aria-label="Collapse sidebar"></button>
+      </div>
+    </aside>
+    <div class="side-scrim" id="side-scrim" hidden></div>
+
+    <!-- MAIN -->
+    <div class="app-main">
+      <header class="topbar">
+        <button class="icon-btn hamburger" id="hamburger" aria-label="Open navigation" aria-expanded="false"></button>
+        <div class="crumb" id="crumb">
+          <span class="crumb-sep mono">~/</span><span id="crumb-name">overview</span>
+        </div>
+        <div class="topbar-right">
+          <button class="search-trigger" id="search-trigger" aria-label="Search (Ctrl K)">
+            <span class="search-label">Search…</span>
+            <span class="kbd" id="search-kbd">⌘K</span>
+          </button>
+          <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme"></button>
+          <div class="notif-wrap">
+            <button class="icon-btn" id="notif-btn" aria-label="Notifications" aria-expanded="false">
+              <span class="notif-badge" id="notif-badge" hidden></span>
+            </button>
+            <div class="notif-panel" id="notif-panel" hidden></div>
+          </div>
+          <div class="user-chip" id="user-chip" title="Demo User">
+            <span class="avatar mono">DU</span>
+            <span class="user-name">Demo User</span>
+          </div>
+          <a class="icon-btn" href="./login.html" title="Log out" aria-label="Log out"></a>
+        </div>
+      </header>
+
+      <main class="view" id="view" tabindex="-1"></main>
+    </div>
+  </div>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="tabbar" id="tabbar" aria-label="Primary">
+    <a class="tab-item active" href="#/overview" data-route="overview" aria-label="Overview"><span>Home</span></a>
+    <a class="tab-item" href="#/pipelines" data-route="pipelines" aria-label="Pipelines"><span>Pipelines</span></a>
+    <button class="tab-fab" id="tab-run" aria-label="Run pipeline" title="Run pipeline"></button>
+    <a class="tab-item" href="#/deployments" data-route="deployments" aria-label="Deployments"><span>Deploys</span></a>
+    <a class="tab-item" href="#/alerts" data-route="alerts" aria-label="Alerts"><span>Alerts</span></a>
+  </nav>
+
+  <!-- COMMAND PALETTE -->
+  <div class="palette-backdrop" id="palette-backdrop" hidden>
+    <div class="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+      <div class="palette-input-row">
+        <input class="palette-input" id="palette-input" type="text" placeholder="Search projects, runs, actions…" autocomplete="off" spellcheck="false" aria-label="Search">
+        <span class="kbd">esc</span>
+      </div>
+      <div class="palette-results" id="palette-results" role="listbox"></div>
+      <div class="palette-foot">
+        <span><span class="kbd">↑</span><span class="kbd">↓</span> navigate</span>
+        <span><span class="kbd">↵</span> select</span>
+        <span class="palette-hint mono">actions</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-region" id="toasts" aria-live="polite"></div>
+
+  <!-- DEMO NOTIFICATION POPUP -->
+  <div id="demo-popup" class="demo-popup">
+    <div class="demo-popup-inner">
+      <div class="demo-popup-icon">
+        <img src="./static/img/logo.svg" alt="" width="32" height="32">
+      </div>
+      <div class="demo-popup-content">
+        <h3 class="demo-popup-title">You're exploring the CerebrOps demo.</h3>
+        <p class="demo-popup-text">The production build will be deployed on cloud infrastructure once we're ready. Until then, feel free to explore and catch a glimpse of what CerebrOps can do.</p>
+      </div>
+      <button class="demo-popup-close" id="demo-popup-close" aria-label="Dismiss">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script id="initial-data" type="application/json">{
+    "system": {"cpu_usage": 34.2, "memory_usage": 58.1, "disk_usage": 41.3, "uptime": 86400},
+    "summary": {"total": 4812, "error_rate_percent": 1.7, "avg_response_time_seconds": 0.143, "avg_response_time_ms": 143, "anomaly_count": 3, "deploy_count": 9},
+    "anomalies": [
+      {"id": 6, "ts": "2026-08-19T10:00:00Z", "status": "detected", "severity": "page", "anomaly_count": 3, "total_data_points": 672, "results": {"method": "forecast-residual", "top_metric_contributions": {"error_rate": 42.3, "response_time": 12.1}, "root_cause": {"run_id": "run-1836", "minutes_before": 1.1, "branch": "main", "commit": "3a08f77", "hypothesis": "Possible deploy-related regression: run-1836 (main@3a08f77) 1.1m before the anomaly."}}},
+      {"id": 5, "ts": "2026-08-19T06:00:00Z", "status": "detected", "severity": "ticket", "anomaly_count": 1, "total_data_points": 672, "results": {"method": "isolation-forest", "top_metric_contributions": {"cpu_usage": 9.2}}},
+      {"id": 4, "ts": "2026-08-18T22:00:00Z", "status": "detected", "severity": "ticket", "anomaly_count": 2, "total_data_points": 670, "results": {"method": "forecast-residual", "top_metric_contributions": {"memory_usage": 17.7, "error_rate": 6.4}}}
+    ],
+    "alerts": [
+      {"id": 8, "ts": "2026-08-19T10:00:00Z", "severity": "page", "alert_type": "anomaly", "message": "error_rate spike — forecast-residual flagged 3 points", "payload": {"channel": "slack"}},
+      {"id": 7, "ts": "2026-08-19T06:00:00Z", "severity": "ticket", "alert_type": "anomaly", "message": "cpu_usage deviating from weekly profile", "payload": {"channel": "slack"}},
+      {"id": 6, "ts": "2026-08-19T00:00:00Z", "severity": "ticket", "alert_type": "slo", "message": "FastBurn: error budget consumed 18.2x in the last hour", "payload": {"channel": "opsgenie"}}
+    ],
+    "pipeline": [
+      {"id": 1, "pipeline_id": "run-1842", "status": "success", "stage": "production", "duration": 42, "branch": "main", "commit_hash": "7d2f9a1", "source": "github-actions", "ts": "2026-08-19T11:00:00Z", "payload": {"project": "cerebrops-core", "repo": "cerebrops/core", "author": "maya", "message": "fix: backpressure on webhook ingress"}},
+      {"id": 2, "pipeline_id": "run-1841", "status": "success", "stage": "production", "duration": 38, "branch": "main", "commit_hash": "9c41be2", "source": "github-actions", "ts": "2026-08-19T09:30:00Z", "payload": {"project": "cerebrops-core", "repo": "cerebrops/core", "author": "devon", "message": "feat: forecast-residual detection v2"}},
+      {"id": 3, "pipeline_id": "run-1840", "status": "failed", "stage": "test", "duration": 28, "branch": "main", "commit_hash": "3a08f77", "source": "github-actions", "ts": "2026-08-19T08:00:00Z", "payload": {"project": "gateway", "repo": "cerebrops/gateway", "author": "alex", "message": "chore: pin trivy-action to 0.35.0"}},
+      {"id": 4, "pipeline_id": "run-1839", "status": "success", "stage": "production", "duration": 55, "branch": "main", "commit_hash": "e5d90b4", "source": "github-actions", "ts": "2026-08-19T06:00:00Z", "payload": {"project": "cerebrops-core", "repo": "cerebrops/core", "author": "maya", "message": "feat: deploy-correlated root cause"}},
+      {"id": 5, "pipeline_id": "run-1838", "status": "running", "stage": "deploy", "duration": 12, "branch": "pr-127", "commit_hash": "b21a6c8", "source": "github-actions", "ts": "2026-08-19T11:15:00Z", "payload": {"project": "web-dashboard", "repo": "cerebrops/web-dashboard", "author": "devon", "message": "perf: batch metric inserts"}}
+    ],
+    "api_key_configured": false,
+    "recent_logs": ["2026-08-19T11:00:00 INFO Pipeline event recorded: run-1842", "2026-08-19T10:55:00 INFO Monitor cycle complete: 0 anomalies", "2026-08-19T10:00:00 WARN Forecast-residual anomaly detected: error_rate"]
+  }</script>
+
+  <script src="./static/vendor/three.min.js"></script>
+  <script src="./static/vendor/chart.umd.min.js"></script>
+  <script>
+    // Override the API function to return demo data from initial-data
+    (function() {
+      var initialData = JSON.parse(document.getElementById('initial-data').textContent);
+
+      // Store the original api function and replace it
+      window.__demoMode = true;
+      window.__demoData = initialData;
+
+      // Demo notification popup
+      var popup = document.getElementById('demo-popup');
+      var closeBtn = document.getElementById('demo-popup-close');
+      if (popup && closeBtn) {
+        closeBtn.addEventListener('click', function() {
+          popup.style.opacity = '0';
+          popup.style.transform = 'translateY(20px)';
+          setTimeout(function() { popup.style.display = 'none'; }, 300);
+        });
+        // Auto-dismiss after 8 seconds
+        setTimeout(function() {
+          if (popup.style.display !== 'none') {
+            popup.style.opacity = '0';
+            popup.style.transform = 'translateY(20px)';
+            setTimeout(function() { popup.style.display = 'none'; }, 300);
+          }
+        }, 8000);
+      }
+    })();
+  </script>
+  <script src="./static/js/demo-api.js"></script>
+  <script src="./static/js/app.js"></script>
+</body>
+</html>

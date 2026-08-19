@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in — CerebrOps Demo</title>
+  <link rel="icon" type="image/svg+xml" href="./static/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/tokens.css">
+  <link rel="stylesheet" href="./static/css/base.css">
+  <link rel="stylesheet" href="./static/css/auth.css">
+</head>
+<body class="auth">
+  <main class="auth-card">
+    <a class="auth-brand" href="./index.html">
+      <span class="brand-mark" aria-hidden="true">
+        <img src="./static/img/logo.svg" alt="" width="26" height="26">
+      </span>
+      CerebrOps
+    </a>
+
+    <div class="auth-demo-banner" role="status">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+      <span>This is a demo. Credentials are pre-filled below.</span>
+    </div>
+
+    <h1 class="auth-title">Welcome <span class="serif-it" style="color:var(--accent-strong)">back.</span></h1>
+    <p class="auth-sub">Your deployments have been waiting. Sign in to see what shipped.</p>
+
+    <form class="auth-form" id="login-form">
+      <div class="auth-field">
+        <label for="email">Email</label>
+        <input class="auth-input" id="email" name="email" type="email" value="admin@cerebrops.dev" required autocomplete="email" autofocus>
+      </div>
+      <div class="auth-field">
+        <label for="password">Password</label>
+        <input class="auth-input" id="password" name="password" type="password" value="admin123" required autocomplete="current-password">
+      </div>
+      <div class="auth-row">
+        <button class="auth-submit" type="submit">Sign in</button>
+        <a class="auth-forgot" href="./forgot-password.html">Forgot password?</a>
+      </div>
+    </form>
+
+    <p class="auth-switch">New to CerebrOps? <a href="./register.html">Create an account</a></p>
+    <p class="auth-demo">The API surface stays open — webhooks, metrics, and Prometheus never need a session.</p>
+
+    <p class="auth-foot">
+      <a href="./index.html">← back to cerebrops</a>
+    </p>
+  </main>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      window.location.href = './dashboard.html';
+    });
+  </script>
+</body>
+</html>
